@@ -1,4 +1,4 @@
-package com.boxinghub.controller;
+package com.boxinghub.controller.admin;
 
 import com.boxinghub.entity.Member;
 import com.boxinghub.service.MemberService;
@@ -18,21 +18,21 @@ public class MemberController {
     @GetMapping
     public String listMembers(Model model) {
         model.addAttribute("members", memberService.getAllMembers());
-        return "members/list";
+        return "admin/members/list";
     }
 
     // Hiển thị form thêm mới
     @GetMapping("/new")
     public String showCreateForm(Model model) {
         model.addAttribute("member", new Member());
-        return "members/form";
+        return "admin/members/form";
     }
 
     // Xử lý thêm/sửa member
     @PostMapping("/save")
     public String saveMember(@ModelAttribute Member member) {
         memberService.saveMember(member);
-        return "redirect:/members";
+        return "redirect:/admin/members";
     }
 
     // Hiển thị form sửa
@@ -41,13 +41,13 @@ public class MemberController {
         memberService.getMemberById(id).ifPresent(
                 member -> model.addAttribute("member", member)
         );
-        return "members/form";
+        return "admin/members/form";
     }
 
     // Xóa member
     @GetMapping("/delete/{id}")
     public String deleteMember(@PathVariable Long id) {
         memberService.deleteMember(id);
-        return "redirect:/members";
+        return "redirect:/admin/members";
     }
 }
