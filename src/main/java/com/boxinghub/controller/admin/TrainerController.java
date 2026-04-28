@@ -8,7 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequestMapping("/trainers")
+@RequestMapping("/admin/trainers")
 @RequiredArgsConstructor
 public class TrainerController {
 

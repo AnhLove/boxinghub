@@ -1,141 +1,118 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}"
+      lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>Thêm/Sửa học viên - BoxingHub</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #0a0a0a; color: #f0f0f0; }
-        .navbar { background-color: #1a1a1a; border-bottom: 2px solid #e53935; }
-        .navbar-brand { color: #e53935 !important; font-weight: bold; font-size: 1.5rem; }
-        .card { background-color: #1a1a1a; border: 1px solid #333; }
-        .card-header { background-color: #e53935; color: white; }
-        .form-control, .form-select {
-            background-color: #2a2a2a;
-            border: 1px solid #444;
-            color: #f0f0f0;
-        }
-        .form-control:focus, .form-select:focus {
-            background-color: #2a2a2a;
-            border-color: #e53935;
-            color: #f0f0f0;
-            box-shadow: 0 0 0 0.2rem rgba(229,57,53,0.25);
-        }
-        .form-label { color: #ccc; }
-        .btn-save { background-color: #e53935; border: none; color: white; }
-        .btn-save:hover { background-color: #c62828; color: white; }
-    </style>
+    <title th:text="${member.id == null ? 'Thêm học viên' : 'Sửa học viên'}"></title>
 </head>
 <body>
 
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg">
-    <div class="container">
-        <a class="navbar-brand">🥊 BoxingHub</a>
-        <div class="navbar-nav ms-auto">
-            <a class="nav-link text-light" href="/members">Học viên</a>
+<div layout:fragment="content"
+     th:with="activePage='members',
+              pageTitle=${member.id == null ? 'Thêm học viên' : 'Cập nhật học viên'}">
+
+    <!-- Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title"
+                th:text="${member.id == null ? 'Thêm học viên mới' : 'Cập nhật học viên'}"></h1>
+            <p class="page-subtitle">Điền đầy đủ thông tin bên dưới</p>
+        </div>
+        <a href="/admin/members" class="btn-red" style="background:var(--bg-4);color:var(--text);border:1px solid var(--border);">
+            <i class="bi bi-arrow-left"></i> Quay lại
+        </a>
+    </div>
+
+    <!-- Form -->
+    <div class="card-box">
+        <div class="card-box-header">
+            <i class="bi bi-person-plus"></i> Thông tin học viên
+        </div>
+
+        <div class="p-4">
+            <form th:action="@{/admin/members/save}" th:object="${member}" method="post">
+
+                <!-- ID -->
+                <input type="hidden" th:field="*{id}">
+
+                <!-- Họ tên -->
+                <div class="mb-3">
+                    <label class="form-label">Họ và tên *</label>
+                    <input type="text" class="form-control"
+                           th:field="*{fullName}"
+                           placeholder="Nguyễn Văn A" required>
+                </div>
+
+                <!-- Email + Phone -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Email *</label>
+                        <input type="email" class="form-control"
+                               th:field="*{email}"
+                               placeholder="example@gmail.com" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="text" class="form-control"
+                               th:field="*{phone}"
+                               placeholder="0901234567">
+                    </div>
+                </div>
+
+                <!-- Gender + Level -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Giới tính</label>
+                        <select class="form-select" th:field="*{gender}">
+                            <option value="">-- Chọn giới tính --</option>
+                            <option value="MALE">Nam</option>
+                            <option value="FEMALE">Nữ</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Cấp độ</label>
+                        <select class="form-select" th:field="*{level}">
+                            <option value="">-- Chọn cấp độ --</option>
+                            <option value="BEGINNER">Beginner</option>
+                            <option value="INTERMEDIATE">Intermediate</option>
+                            <option value="ADVANCED">Advanced</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Weight + Height -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Cân nặng (kg)</label>
+                        <input type="number" step="0.1" class="form-control"
+                               th:field="*{weight}"
+                               placeholder="65.5">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Chiều cao (cm)</label>
+                        <input type="number" step="0.1" class="form-control"
+                               th:field="*{height}"
+                               placeholder="175">
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn-red">
+                        💾 Lưu học viên
+                    </button>
+                    <a href="/admin/members" class="btn-red"
+                       style="background:transparent;color:var(--text-muted);border:1px solid var(--border);">
+                        Hủy
+                    </a>
+                </div>
+
+            </form>
         </div>
     </div>
-</nav>
 
-<!-- Content -->
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-
-            <!-- Header -->
-            <div class="d-flex align-items-center mb-4">
-                <a href="/members" class="btn btn-outline-secondary me-3">← Quay lại</a>
-                <div>
-                    <h2 class="mb-1" th:text="${member.id == null} ? 'Thêm học viên mới' : 'Cập nhật học viên'"></h2>
-                    <p class="text-muted mb-0">Điền đầy đủ thông tin bên dưới</p>
-                </div>
-            </div>
-
-            <!-- Form -->
-            <div class="card">
-                <div class="card-header py-3">
-                    <h5 class="mb-0">📝 Thông tin học viên</h5>
-                </div>
-                <div class="card-body p-4">
-                    <form th:action="@{/members/save}" th:object="${member}" method="post">
-                        <input type="hidden" th:field="*{id}">
-
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <label class="form-label">Họ và tên *</label>
-                                <input type="text" class="form-control"
-                                       th:field="*{fullName}"
-                                       placeholder="Nguyễn Văn A" required>
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Email *</label>
-                                <input type="email" class="form-control"
-                                       th:field="*{email}"
-                                       placeholder="example@gmail.com" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Số điện thoại</label>
-                                <input type="text" class="form-control"
-                                       th:field="*{phone}"
-                                       placeholder="0901234567">
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Giới tính</label>
-                                <select class="form-select" th:field="*{gender}">
-                                    <option value="">-- Chọn giới tính --</option>
-                                    <option value="MALE">Nam</option>
-                                    <option value="FEMALE">Nữ</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Cấp độ</label>
-                                <select class="form-select" th:field="*{level}">
-                                    <option value="">-- Chọn cấp độ --</option>
-                                    <option value="BEGINNER">Beginner</option>
-                                    <option value="INTERMEDIATE">Intermediate</option>
-                                    <option value="ADVANCED">Advanced</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label">Cân nặng (kg)</label>
-                                <input type="number" step="0.1" class="form-control"
-                                       th:field="*{weight}"
-                                       placeholder="65.5">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Chiều cao (cm)</label>
-                                <input type="number" step="0.1" class="form-control"
-                                       th:field="*{height}"
-                                       placeholder="175">
-                            </div>
-                        </div>
-
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-save px-4">
-                                💾 Lưu học viên
-                            </button>
-                            <a href="/members" class="btn btn-outline-secondary px-4">
-                                Hủy
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-        </div>
-    </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
