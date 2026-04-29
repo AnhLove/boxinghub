@@ -3,14 +3,19 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/main}"
       lang="vi">
+
 <head>
     <title>Dashboard</title>
-    <th:block th:with="activePage='dashboard', pageTitle='Dashboard'"></th:block>
 </head>
+
 <body>
+
+<!-- 🔥 TRUYỀN BIẾN CHO LAYOUT -->
+<th:block th:with="activePage='dashboard', pageTitle='Dashboard'"></th:block>
+
 <div layout:fragment="content">
 
-    <!-- Page Header -->
+    <!-- HEADER -->
     <div class="page-header">
         <div>
             <h1 class="page-title">Dashboard</h1>
@@ -18,8 +23,9 @@
         </div>
     </div>
 
-    <!-- Stat Cards -->
+    <!-- STATS -->
     <div class="row g-3 mb-4">
+
         <div class="col-md-4">
             <div class="stat-card">
                 <div class="stat-icon green">
@@ -31,6 +37,7 @@
                 </div>
             </div>
         </div>
+
         <div class="col-md-4">
             <div class="stat-card">
                 <div class="stat-icon red">
@@ -42,9 +49,10 @@
                 </div>
             </div>
         </div>
+
         <div class="col-md-4">
             <div class="stat-card">
-                <div class="stat-icon" style="background:rgba(100,100,255,0.12);color:#7c83ff;">
+                <div class="stat-icon blue">
                     <i class="bi bi-calendar-check"></i>
                 </div>
                 <div>
@@ -53,42 +61,51 @@
                 </div>
             </div>
         </div>
+
     </div>
 
-    <!-- Quick links -->
+    <!-- QUICK ACTION -->
     <div class="row g-3">
+
         <div class="col-md-6">
             <div class="card-box">
                 <div class="card-box-header">
                     <i class="bi bi-people"></i> Học viên
                 </div>
-                <div style="padding: 20px; display:flex; gap:10px;">
+
+                <div class="card-body-actions">
                     <a href="/admin/members" class="btn-red">
                         <i class="bi bi-list-ul"></i> Xem danh sách
                     </a>
-                    <a href="/admin/members/new" class="btn-red" style="background:var(--bg-4);color:var(--text);border:1px solid var(--border);">
+
+                    <a href="/admin/members/new" class="btn-outline">
                         <i class="bi bi-plus"></i> Thêm mới
                     </a>
                 </div>
             </div>
         </div>
+
         <div class="col-md-6">
             <div class="card-box">
                 <div class="card-box-header">
                     <i class="bi bi-person-badge"></i> Huấn luyện viên
                 </div>
-                <div style="padding: 20px; display:flex; gap:10px;">
+
+                <div class="card-body-actions">
                     <a href="/admin/trainers" class="btn-red">
                         <i class="bi bi-list-ul"></i> Xem danh sách
                     </a>
-                    <a href="/admin/trainers/new" class="btn-red" style="background:var(--bg-4);color:var(--text);border:1px solid var(--border);">
+
+                    <a href="/admin/trainers/new" class="btn-outline">
                         <i class="bi bi-plus"></i> Thêm mới
                     </a>
                 </div>
             </div>
         </div>
+
     </div>
 
 </div>
+
 </body>
 </html>
