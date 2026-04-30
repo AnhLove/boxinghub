@@ -1,46 +1,39 @@
-// ===== SIDEBAR =====
-const sidebar = document.getElementById('sidebar');
-const topbar = document.getElementById('topbar');
-const main = document.getElementById('main-content');
-const icon = document.getElementById('toggleIcon');
+// Gộp logic để chạy mượt
+document.addEventListener("DOMContentLoaded", function() {
+    const sidebar = document.getElementById('sidebar');
+    const icon = document.getElementById('toggleIcon');
+    const toggleBtn = document.getElementById('toggleBtn');
 
-if (localStorage.getItem('sb') === '1') {
-    sidebar.classList.add('collapsed');
-    topbar.classList.add('collapsed');
-    main.classList.add('collapsed');
-    icon.className = 'bi bi-chevron-right';
-}
-
-document.getElementById('toggleBtn').onclick = () => {
-    let c = sidebar.classList.toggle('collapsed');
-    topbar.classList.toggle('collapsed');
-    main.classList.toggle('collapsed');
-    icon.className = c ? 'bi bi-chevron-right' : 'bi bi-chevron-left';
-    localStorage.setItem('sb', c ? '1' : '0');
-};
-
-// ===== THEME =====
-const themeBtn = document.getElementById("themeBtn");
-const themeIcon = document.getElementById("themeIcon");
-
-function loadTheme() {
-    let theme = localStorage.getItem("theme") || "dark";
-    document.documentElement.setAttribute("data-theme", theme);
-    themeIcon.className = theme === "dark" ? "bi bi-sun" : "bi bi-moon";
-}
-
-loadTheme();
-
-themeBtn.onclick = () => {
-    let current = document.documentElement.getAttribute("data-theme");
-
-    if (current === "dark") {
-        document.documentElement.setAttribute("data-theme", "light");
-        localStorage.setItem("theme", "light");
-    } else {
-        document.documentElement.setAttribute("data-theme", "dark");
-        localStorage.setItem("theme", "dark");
+    // Khởi tạo trạng thái Sidebar
+    if (localStorage.getItem('sb') === '1') {
+        sidebar.classList.add('collapsed');
+        icon.className = 'bi bi-chevron-right';
     }
 
-    loadTheme();
-};
+    toggleBtn.onclick = () => {
+        let isCollapsed = sidebar.classList.toggle('collapsed');
+        icon.className = isCollapsed ? 'bi bi-chevron-right' : 'bi bi-chevron-left';
+        localStorage.setItem('sb', isCollapsed ? '1' : '0');
+    };
+
+    // Khởi tạo Theme
+    const themeBtn = document.getElementById("themeBtn");
+    const themeIcon = document.getElementById("themeIcon");
+
+    function applyTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+        if (themeIcon) {
+            themeIcon.className = theme === "dark" ? "bi bi-sun" : "bi bi-moon-stars";
+        }
+        localStorage.setItem("theme", theme);
+    }
+
+    applyTheme(localStorage.getItem("theme") || "dark");
+
+    if (themeBtn) {
+        themeBtn.onclick = () => {
+            let newTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+            applyTheme(newTheme);
+        };
+    }
+});
