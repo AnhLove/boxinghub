@@ -3,106 +3,105 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/main}"
       lang="vi">
-
 <head>
-    <title>Dashboard</title>
+    <title>Dashboard - BoxingHub</title>
 </head>
-
 <body>
 
-<!-- 🔥 TRUYỀN BIẾN CHO LAYOUT -->
-<th:block th:with="activePage='dashboard', pageTitle='Dashboard'"></th:block>
+<div layout:fragment="content" th:with="activePage='dashboard', pageTitle='Tổng quan'">
 
-<div layout:fragment="content">
-
-    <!-- HEADER -->
-    <div class="page-header">
+    <!-- Header & Nút hành động nhanh -->
+    <div class="page-header d-flex justify-content-between align-items-center">
         <div>
             <h1 class="page-title">Dashboard</h1>
-            <p class="page-subtitle">Tổng quan hệ thống BoxingHub</p>
+            <p class="page-subtitle">Chào mừng trở lại, quản trị viên.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/admin/group-classes/new" class="btn-red">
+                <i class="bi bi-plus-circle"></i> Thêm lớp mới
+            </a>
+            <a href="/admin/members/new" class="btn-outline" style="border: 1px solid var(--border); color: var(--text);">
+                <i class="bi bi-person-plus"></i> Học viên mới
+            </a>
         </div>
     </div>
 
-    <!-- STATS -->
+    <!-- Chỉ số thống kê (Stats Grid) -->
     <div class="row g-3 mb-4">
-
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="stat-card">
-                <div class="stat-icon green">
-                    <i class="bi bi-people-fill"></i>
-                </div>
+                <div class="stat-icon green"><i class="bi bi-people-fill"></i></div>
                 <div>
                     <div class="stat-num" th:text="${totalMembers}">0</div>
-                    <div class="stat-label">Tổng học viên</div>
+                    <div class="stat-label">Học viên</div>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="stat-card">
-                <div class="stat-icon red">
-                    <i class="bi bi-person-badge-fill"></i>
-                </div>
+                <div class="stat-icon red"><i class="bi bi-person-badge-fill"></i></div>
                 <div>
                     <div class="stat-num" th:text="${totalTrainers}">0</div>
                     <div class="stat-label">Huấn luyện viên</div>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="stat-card">
-                <div class="stat-icon blue">
-                    <i class="bi bi-calendar-check"></i>
-                </div>
+                <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;"><i class="bi bi-boxing-glove"></i></div>
                 <div>
-                    <div class="stat-num">—</div>
-                    <div class="stat-label">Lịch tập (sắp có)</div>
+                    <div class="stat-num" th:text="${totalClasses}">0</div>
+                    <div class="stat-label">Tổng lớp tập</div>
                 </div>
             </div>
         </div>
-
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(255, 193, 7, 0.1); color: #ffc107;"><i class="bi bi-unlock-fill"></i></div>
+                <div>
+                    <div class="stat-num" th:text="${openClasses}">0</div>
+                    <div class="stat-label">Lớp đang mở</div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- QUICK ACTION -->
-    <div class="row g-3">
-
-        <div class="col-md-6">
-            <div class="card-box">
-                <div class="card-box-header">
-                    <i class="bi bi-people"></i> Học viên
-                </div>
-
-                <div class="card-body-actions">
-                    <a href="/admin/members" class="btn-red">
-                        <i class="bi bi-list-ul"></i> Xem danh sách
-                    </a>
-
-                    <a href="/admin/members/new" class="btn-outline">
-                        <i class="bi bi-plus"></i> Thêm mới
-                    </a>
-                </div>
-            </div>
+    <!-- Bảng lớp học sắp diễn ra -->
+    <div class="card-box">
+        <div class="card-box-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-calendar-event"></i> Lớp học sắp tới (7 ngày tới)</span>
+            <a href="/admin/group-classes" class="text-red" style="font-size: 0.85rem; text-decoration: none;">Xem tất cả</a>
         </div>
-
-        <div class="col-md-6">
-            <div class="card-box">
-                <div class="card-box-header">
-                    <i class="bi bi-person-badge"></i> Huấn luyện viên
-                </div>
-
-                <div class="card-body-actions">
-                    <a href="/admin/trainers" class="btn-red">
-                        <i class="bi bi-list-ul"></i> Xem danh sách
-                    </a>
-
-                    <a href="/admin/trainers/new" class="btn-outline">
-                        <i class="bi bi-plus"></i> Thêm mới
-                    </a>
-                </div>
-            </div>
+        <div class="table-responsive" style="padding: 15px;">
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th>Tên lớp</th>
+                    <th>HLV phụ trách</th>
+                    <th>Lịch học</th>
+                    <th>Sức chứa</th>
+                    <th>Trạng thái</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${upcomingClasses}">
+                    <td th:text="${c.className}" style="font-weight: 500;"></td>
+                    <td th:text="${c.trainer != null ? c.trainer.fullName : 'Chưa phân công'}"></td>
+                    <td th:text="${#temporals.format(c.schedule, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td>
+                        <span th:text="${c.currentEnrolled + ' / ' + c.capacity}"></span>
+                    </td>
+                    <td>
+                        <span th:if="${c.status.name() == 'OPEN'}" class="badge-pill badge-active">OPEN</span>
+                        <span th:if="${c.status.name() == 'FULL'}" class="badge-pill" style="background: #fff3e0; color: #ef6c00;">FULL</span>
+                    </td>
+                </tr>
+                <tr th:if="${upcomingClasses.isEmpty()}">
+                    <td colspan="5" class="text-center py-4 text-muted">Không có lớp học nào sắp diễn ra.</td>
+                </tr>
+                </tbody>
+            </table>
         </div>
-
     </div>
 
 </div>

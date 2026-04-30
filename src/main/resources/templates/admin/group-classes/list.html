@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}"
+      lang="vi">
+<head>
+    <title>Danh sách Lớp tập</title>
+</head>
+<body>
+
+<div layout:fragment="content"
+     th:with="activePage='group-classes', pageTitle='Lớp tập nhóm'">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Danh sách lớp tập nhóm</h1>
+            <p class="page-subtitle">Quản lý toàn bộ lớp tập BoxingHub</p>
+        </div>
+        <a href="/admin/group-classes/new" class="btn-red">
+            <i class="bi bi-plus"></i> Thêm lớp tập
+        </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon red">
+                    <i class="bi bi-boxing-glove"></i>
+                </div>
+                <div>
+                    <div class="stat-num" th:text="${groupClasses.size()}">0</div>
+                    <div class="stat-label">Tổng số lớp</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class="bi bi-unlock"></i>
+                </div>
+                <div>
+                    <div class="stat-num" th:text="${groupClasses.?[status.name()=='OPEN'].size()}">0</div>
+                    <div class="stat-label">Đang mở (OPEN)</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <i class="bi bi-lock"></i>
+                </div>
+                <div>
+                    <div class="stat-num" th:text="${groupClasses.?[status.name()=='FULL'].size()}">0</div>
+                    <div class="stat-label">Đã đầy (FULL)</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon gray">
+                    <i class="bi bi-x-circle"></i>
+                </div>
+                <div>
+                    <div class="stat-num" th:text="${groupClasses.?[status.name()=='CANCELLED'].size()}">0</div>
+                    <div class="stat-label">Đã hủy (CANCELLED)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card-box">
+        <div class="card-box-header">
+            <i class="bi bi-list-ul"></i> Danh sách lớp tập
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Tên lớp</th>
+                    <th>HLV phụ trách</th>
+                    <th>Lịch học</th>
+                    <th>Thời lượng</th>
+                    <th>Sức chứa</th>
+                    <th>Đã đăng ký</th>
+                    <th>Giá (VNĐ)</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="gc, stat : ${groupClasses}">
+                    <td th:text="${stat.index + 1}"></td>
+                    <td th:text="${gc.className}"></td>
+                    <td>
+                        <span th:if="${gc.trainer != null}" th:text="${gc.trainer.fullName}"></span>
+                        <span th:if="${gc.trainer == null}" class="text-muted">Chưa gán</span>
+                    </td>
+                    <td>
+                        <span th:if="${gc.schedule != null}"
+                              th:text="${#temporals.format(gc.schedule, 'dd/MM/yyyy HH:mm')}"></span>
+                        <span th:if="${gc.schedule == null}" class="text-muted">—</span>
+                    </td>
+                    <td>
+                        <span th:if="${gc.durationMinutes != null}"
+                              th:text="${gc.durationMinutes + ' phút'}"></span>
+                        <span th:if="${gc.durationMinutes == null}" class="text-muted">—</span>
+                    </td>
+                    <td>
+                        <span th:if="${gc.capacity != null}" th:text="${gc.capacity}"></span>
+                        <span th:if="${gc.capacity == null}" class="text-muted">—</span>
+                    </td>
+                    <td>
+                        <span th:text="${gc.currentEnrolled}"></span>
+                    </td>
+                    <td>
+                        <span th:if="${gc.price != null}"
+                              th:text="${#numbers.formatDecimal(gc.price, 0, 'COMMA', 0, 'POINT')}"></span>
+                        <span th:if="${gc.price == null}" class="text-muted">—</span>
+                    </td>
+                    <td>
+                        <span th:switch="${gc.status}">
+                            <span th:case="'OPEN'" class="badge-pill badge-active">OPEN</span>
+                            <span th:case="'FULL'" class="badge-pill badge-inactive">FULL</span>
+                            <span th:case="'CANCELLED'" class="badge-pill badge-cancelled">CANCELLED</span>
+                            <span th:case="*" class="text-muted">—</span>
+                        </span>
+                    </td>
+                    <td>
+                        <a th:href="@{/admin/group-classes/edit/{id}(id=${gc.id})}"
+                           class="btn-edit">Sửa</a>
+                        <a th:href="@{/admin/group-classes/delete/{id}(id=${gc.id})}"
+                           class="btn-del"
+                           onclick="return confirm('Xóa lớp tập này?')">Xóa</a>
+                    </td>
+                </tr>
+                <tr th:if="${groupClasses.isEmpty()}">
+                    <td colspan="10">
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <div>Chưa có lớp tập nào. <a href="/admin/group-classes/new" style="color:var(--red)">Thêm ngay!</a></div>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
