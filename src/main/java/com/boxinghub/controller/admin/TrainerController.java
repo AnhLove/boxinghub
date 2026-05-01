@@ -7,6 +7,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/admin/trainers")
 @RequiredArgsConstructor
@@ -15,8 +17,14 @@ public class TrainerController {
     private final TrainerService trainerService;
 
     @GetMapping
-    public String listTrainers(Model model) {
-        model.addAttribute("trainers", trainerService.getAllTrainers());
+    public String listTrainers(@RequestParam(name = "keyword", required = false) String keyword,
+                               Model model) {
+        List<Trainer> trainers = trainerService.searchByName(keyword);
+
+        model.addAttribute("trainers", trainers);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("activePage", "trainers");
+
         return "admin/trainers/list";
     }
 

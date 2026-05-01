@@ -36,7 +36,12 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     public List<Trainer> searchByName(String keyword) {
-        return trainerRepository.findByFullNameContainingIgnoreCase(keyword);
+        // Nếu keyword null hoặc rỗng, trả về toàn bộ danh sách HLV
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return trainerRepository.findAll();
+        }
+        // Lọc theo tên
+        return trainerRepository.findByFullNameContainingIgnoreCase(keyword.trim());
     }
 
     @Override

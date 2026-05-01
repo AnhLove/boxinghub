@@ -37,6 +37,34 @@
         </div>
     </div>
 
+    <!-- 🔥 SEARCH BAR: Thêm để lọc theo tên HLV -->
+    <div class="card-box mb-4" style="padding: 15px;">
+        <form th:action="@{/admin/trainers}" method="get" class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text" style="background: var(--bg-3); border: 1px solid var(--border); color: var(--text-muted);">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" name="keyword" th:value="${keyword}"
+                           class="form-control"
+                           placeholder="Tìm kiếm theo tên HLV..."
+                           style="background: var(--bg-3); border: 1px solid var(--border); color: var(--text);">
+                </div>
+            </div>
+            <div class="col-md-auto">
+                <button type="submit" class="btn-red" style="padding: 7px 20px;">
+                    <i class="bi bi-filter"></i> Lọc
+                </button>
+                <a th:href="@{/admin/trainers}" class="btn-edit" style="text-decoration: none; padding: 7px 15px;">
+                    <i class="bi bi-arrow-clockwise"></i> Làm mới
+                </a>
+            </div>
+            <div class="col-md-auto ms-auto" th:if="${keyword != null and keyword != ''}">
+                <span class="text-muted">Kết quả cho: <strong th:text="${keyword}" style="color: var(--red)"></strong></span>
+            </div>
+        </form>
+    </div>
+
     <!-- Table -->
     <div class="card-box">
         <div class="card-box-header">
@@ -62,7 +90,8 @@
                     <td th:text="${stat.index + 1}"></td>
                     <td th:text="${trainer.fullName}"></td>
                     <td th:text="${trainer.email}"></td>
-                    <td th:text="${trainer.phone}"></td>
+                    <!-- Khớp với 'private String phone' trong Entity -->
+                    <td th:text="${trainer.phone != null ? trainer.phone : '—'}"></td>
                     <td>
                         <span th:if="${trainer.gender != null}" th:text="${trainer.gender}"></span>
                         <span th:if="${trainer.gender == null}" class="text-muted">—</span>
@@ -94,8 +123,8 @@
                 <tr th:if="${trainers.isEmpty()}">
                     <td colspan="9">
                         <div class="empty-state">
-                            <i class="bi bi-inbox"></i>
-                            <div>Chưa có huấn luyện viên nào. <a href="/admin/trainers/new" style="color:var(--red)">Thêm ngay!</a></div>
+                            <i class="bi bi-search"></i>
+                            <div>Không tìm thấy HLV nào phù hợp. <a th:href="@{/admin/trainers}" style="color:var(--red)">Quay lại!</a></div>
                         </div>
                     </td>
                 </tr>
@@ -103,7 +132,6 @@
             </table>
         </div>
     </div>
-
 </div>
 
 </body>
