@@ -58,34 +58,40 @@
                         <!-- Lịch học & Thời lượng -->
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">Lịch học</label>
-                                <input type="datetime-local" class="form-control" th:field="*{schedule}" />
+                                <label class="form-label">Lịch học <span style="color:var(--red)">*</span></label>
+                                <input type="datetime-local" class="form-control" th:field="*{schedule}" required />
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Thời lượng (phút)</label>
-                                <input type="number" class="form-control" th:field="*{durationMinutes}" min="0" />
+                                <input type="number" class="form-control" th:field="*{durationMinutes}" placeholder="Mặc định 120" min="0" />
                             </div>
                         </div>
 
                         <!-- Sức chứa & Giá -->
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">Sức chứa</label>
-                                <input type="number" class="form-control" th:field="*{capacity}" min="1" />
+                                <label class="form-label">Sức chứa <span style="color:var(--red)">*</span></label>
+                                <input type="number" class="form-control" th:field="*{capacity}" min="1" required />
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Giá (VNĐ)</label>
-                                <input type="number" class="form-control" th:field="*{price}" step="0.01" min="0" />
+                                <input type="number" class="form-control" th:field="*{price}" step="1000" min="0" />
                             </div>
                         </div>
 
                         <!-- Trạng thái -->
                         <div class="mb-3">
-                            <label class="form-label">Trạng thái</label>
+                            <label class="form-label">Trạng thái quản lý</label>
                             <select class="form-select" th:field="*{status}">
-                                <option value="" th:selected="${groupClass.status == null}">-- Chọn trạng thái --</option>
-                                <option th:each="st : ${statuses}" th:value="${st}" th:text="${st}"></option>
+                                <option value="OPEN">Mở đăng ký (OPEN)</option>
+                                <option value="CANCELLED">Hủy lớp (CANCELLED)</option>
+                                <!-- Chỉ hiển thị các trạng thái tự động nếu đang ở chế độ xem lại (isEdit) để Admin biết, nhưng không cho chọn lại -->
+                                <option th:if="${isEdit and groupClass.status.name() == 'FULL'}" value="FULL" disabled selected>Đã đầy (FULL - Tự động)</option>
+                                <option th:if="${isEdit and groupClass.status.name() == 'CLOSED'}" value="CLOSED" disabled selected>Đã kết thúc (CLOSED - Tự động)</option>
                             </select>
+                            <div class="form-text text-muted">
+                                * Hệ thống sẽ tự động chuyển trạng thái dựa trên thời gian và số lượng thành viên.
+                            </div>
                         </div>
 
                         <!-- Mô tả -->
@@ -97,11 +103,11 @@
                         <!-- Buttons -->
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn-red">
-                                <i class="bi bi-save"></i> Lưu
+                                <i class="bi bi-save"></i> Lưu lớp học
                             </button>
                             <a href="/admin/group-classes" class="btn-red"
                                style="background:transparent;color:var(--text-muted);border:1px solid var(--border);">
-                                Hủy
+                                Hủy bỏ
                             </a>
                         </div>
 

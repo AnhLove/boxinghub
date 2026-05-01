@@ -3,17 +3,19 @@ package com.boxinghub.service;
 import com.boxinghub.entity.GroupClass;
 import com.boxinghub.entity.ClassStatus;
 import com.boxinghub.repository.GroupClassRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class GroupClassServiceImpl implements GroupClassService {
 
-    @Autowired
-    private GroupClassRepository groupClassRepository;
+    private final GroupClassRepository groupClassRepository;
 
     @Override
     public List<GroupClass> getAllGroupClasses() {
@@ -26,7 +28,24 @@ public class GroupClassServiceImpl implements GroupClassService {
     }
 
     @Override
+    @Transactional
     public GroupClass saveGroupClass(GroupClass groupClass) {
+        if (groupClass.getCurrentEnrolled() == null) groupClass.setCurrentEnrolled(0);
+
+        LocalDateTime now = LocalDateTime.now();
+        int duration = (groupClass.getDurationMinutes() != null) ? groupClass.getDurationMinutes() : 120;
+
+        if (groupClass.getSchedule() != null) {
+            LocalDateTime endTime = groupClass.getSchedule().plusMinutes(duration);
+
+            if (now.isAfter(endTime)) {
+                groupClass.setStatus(ClassStatus.CLOSED);
+            } else if (groupClass.getCurrentEnrolled() >= groupClass.getCapacity()) {
+                groupClass.setStatus(ClassStatus.FULL);
+            } else if (groupClass.getStatus() != ClassStatus.CANCELLED) {
+                groupClass.setStatus(ClassStatus.OPEN);
+            }
+        }
         return groupClassRepository.save(groupClass);
     }
 
@@ -46,85 +65,41 @@ public class GroupClassServiceImpl implements GroupClassService {
     }
 
     @Override
-    public List<GroupClass> findByClassNameContainingIgnoreCase(String keyword) {
+    public List<GroupClass> findByClassName(String keyword) {
         return groupClassRepository.findByClassNameContainingIgnoreCase(keyword);
-    }
-
-    @Override
-    public List<GroupClass> getOpenClasses() {
-        return findByStatus(ClassStatus.OPEN);
     }
 
     @Override
     public List<GroupClass> getUpcomingClasses() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime nextWeek = now.plusDays(7);
-        return groupClassRepository.findAll().stream()
-                .filter(c -> c.getSchedule() != null &&
-                        c.getSchedule().isAfter(now) &&
-                        c.getSchedule().isBefore(nextWeek))
-                .toList();
+        return groupClassRepository.findByScheduleBetweenOrderByScheduleAsc(now, nextWeek);
     }
 
     @Override
-    public List<GroupClass> getPastClasses() {
-        LocalDateTime now = LocalDateTime.now();
-        return groupClassRepository.findAll().stream()
-                .filter(c -> c.getSchedule() != null && c.getSchedule().isBefore(now))
-                .toList();
-    }
-
-    // --- Nhóm 4: Nghiệp vụ Đăng ký & Trạng thái ---
-
-    @Override
-    public void updateClassStatus(Long classId) {
-        groupClassRepository.findById(classId).ifPresent(groupClass -> {
-            if (groupClass.getCurrentEnrolled() >= groupClass.getCapacity()) {
-                groupClass.setStatus(ClassStatus.FULL);
-            } else if (groupClass.getCurrentEnrolled() < groupClass.getCapacity()) {
-                groupClass.setStatus(ClassStatus.OPEN);
-            }
-            groupClassRepository.save(groupClass);
-        });
-    }
-
-    @Override
+    @Transactional
     public boolean enrollMember(Long classId, Long memberId) {
-        GroupClass groupClass = groupClassRepository.findById(classId)
-                .orElseThrow(() -> new RuntimeException("Class not found"));
-
-        if (groupClass.getStatus() == ClassStatus.OPEN &&
-                groupClass.getCurrentEnrolled() < groupClass.getCapacity()) {
-
-            groupClass.setCurrentEnrolled(groupClass.getCurrentEnrolled() + 1);
-
-            // Tự động cập nhật FULL nếu đủ người
-            if (groupClass.getCurrentEnrolled() >= groupClass.getCapacity()) {
-                groupClass.setStatus(ClassStatus.FULL);
+        return groupClassRepository.findById(classId).map(groupClass -> {
+            if (groupClass.getStatus() == ClassStatus.OPEN &&
+                    groupClass.getCurrentEnrolled() < groupClass.getCapacity()) {
+                groupClass.setCurrentEnrolled(groupClass.getCurrentEnrolled() + 1);
+                this.saveGroupClass(groupClass);
+                return true;
             }
-
-            groupClassRepository.save(groupClass);
-            return true;
-        }
-        return false;
+            return false;
+        }).orElse(false);
     }
 
     @Override
+    @Transactional
     public boolean cancelEnrollment(Long classId, Long memberId) {
-        GroupClass groupClass = groupClassRepository.findById(classId)
-                .orElseThrow(() -> new RuntimeException("Class not found"));
-
-        if (groupClass.getCurrentEnrolled() > 0) {
-            groupClass.setCurrentEnrolled(groupClass.getCurrentEnrolled() - 1);
-
-            // Nếu đang FULL mà có người hủy thì mở lại lớp
-            if (groupClass.getStatus() == ClassStatus.FULL) {
-                groupClass.setStatus(ClassStatus.OPEN);
+        return groupClassRepository.findById(classId).map(groupClass -> {
+            if (groupClass.getCurrentEnrolled() > 0) {
+                groupClass.setCurrentEnrolled(groupClass.getCurrentEnrolled() - 1);
+                this.saveGroupClass(groupClass);
+                return true;
             }
-
-            groupClassRepository.save(groupClass);
-            return true;
-        }
-        return false;
+            return false;
+        }).orElse(false);
     }
 }

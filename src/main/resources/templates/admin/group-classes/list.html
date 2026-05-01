@@ -24,47 +24,63 @@
 
     <!-- Stats -->
     <div class="row g-3 mb-4">
-        <div class="col-md-3">
+        <!-- Tổng số lớp -->
+        <div class="col-md-2">
             <div class="stat-card">
                 <div class="stat-icon red">
                     <i class="bi bi-boxing-glove"></i>
                 </div>
                 <div>
                     <div class="stat-num" th:text="${groupClasses.size()}">0</div>
-                    <div class="stat-label">Tổng số lớp</div>
+                    <div class="stat-label">Tổng số</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <!-- OPEN -->
+        <div class="col-md-2">
             <div class="stat-card">
                 <div class="stat-icon green">
                     <i class="bi bi-unlock"></i>
                 </div>
                 <div>
-                    <div class="stat-num" th:text="${groupClasses.?[status.name()=='OPEN'].size()}">0</div>
-                    <div class="stat-label">Đang mở (OPEN)</div>
+                    <div class="stat-num" th:text="${groupClasses.?[status.name() == 'OPEN'].size()}">0</div>
+                    <div class="stat-label">Đang mở</div>
                 </div>
             </div>
         </div>
+        <!-- FULL -->
         <div class="col-md-3">
             <div class="stat-card">
                 <div class="stat-icon orange">
                     <i class="bi bi-lock"></i>
                 </div>
                 <div>
-                    <div class="stat-num" th:text="${groupClasses.?[status.name()=='FULL'].size()}">0</div>
-                    <div class="stat-label">Đã đầy (FULL)</div>
+                    <div class="stat-num" th:text="${groupClasses.?[status.name() == 'FULL'].size()}">0</div>
+                    <div class="stat-label">Đã đầy</div>
                 </div>
             </div>
         </div>
+        <!-- CLOSED (Lớp đã kết thúc) -->
+        <div class="col-md-2">
+            <div class="stat-card">
+                <div class="stat-icon dark">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div>
+                    <div class="stat-num" th:text="${groupClasses.?[status.name() == 'CLOSED'].size()}">0</div>
+                    <div class="stat-label">Đã đóng</div>
+                </div>
+            </div>
+        </div>
+        <!-- CANCELLED -->
         <div class="col-md-3">
             <div class="stat-card">
                 <div class="stat-icon gray">
                     <i class="bi bi-x-circle"></i>
                 </div>
                 <div>
-                    <div class="stat-num" th:text="${groupClasses.?[status.name()=='CANCELLED'].size()}">0</div>
-                    <div class="stat-label">Đã hủy (CANCELLED)</div>
+                    <div class="stat-num" th:text="${groupClasses.?[status.name() == 'CANCELLED'].size()}">0</div>
+                    <div class="stat-label">Đã hủy</div>
                 </div>
             </div>
         </div>
@@ -122,12 +138,15 @@
                         <span th:if="${gc.price == null}" class="text-muted">—</span>
                     </td>
                     <td>
-                        <span th:switch="${gc.status}">
+                        <!-- Sửa lỗi hiển thị trạng thái bằng cách thêm .name() -->
+                        <span th:if="${gc.status != null}" th:switch="${gc.status.name()}">
                             <span th:case="'OPEN'" class="badge-pill badge-active">OPEN</span>
                             <span th:case="'FULL'" class="badge-pill badge-inactive">FULL</span>
+                            <span th:case="'CLOSED'" class="badge-pill" style="background:#f5f5f5; color:#616161;">CLOSED</span>
                             <span th:case="'CANCELLED'" class="badge-pill badge-cancelled">CANCELLED</span>
                             <span th:case="*" class="text-muted">—</span>
                         </span>
+                        <span th:if="${gc.status == null}" class="text-muted">—</span>
                     </td>
                     <td>
                         <a th:href="@{/admin/group-classes/edit/{id}(id=${gc.id})}"
