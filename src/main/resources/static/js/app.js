@@ -36,4 +36,18 @@ document.addEventListener("DOMContentLoaded", function() {
             applyTheme(newTheme);
         };
     }
+
+    const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll('.nav-item-link');
+
+        navLinks.forEach(link => {
+            const linkPath = link.getAttribute('href');
+
+            // Kiểm tra nếu đường dẫn hiện tại khớp chính xác hoặc là trang con của mục đó
+            if (currentPath === linkPath || (linkPath !== '/admin/dashboard' && currentPath.startsWith(linkPath))) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
 });

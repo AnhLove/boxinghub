@@ -12,7 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
-    <!-- 🔥 GIỮ NGUYÊN FILE CSS CỦA BẠN -->
+    <!-- GIỮ NGUYÊN FILE CSS CỦA BẠN -->
     <link rel="stylesheet" th:href="@{/css/theme.css}">
     <link rel="stylesheet" th:href="@{/css/layout.css}">
 
@@ -24,21 +24,20 @@
 
         body {
             font-family: 'DM Sans', sans-serif;
-            background: var(--bg); /* Dùng lại biến từ theme.css */
+            background: var(--bg);
             color: var(--text);
             margin: 0;
             overflow-x: hidden;
             transition: background 0.3s;
         }
 
-        /* SIDEBAR - ẨN HOÀN TOÀN */
         #sidebar {
             position: fixed;
             top: 0;
             left: 0;
             width: var(--sidebar-w);
             height: 100vh;
-            background: var(--bg-2); /* Biến từ theme.css */
+            background: var(--bg-2);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
@@ -46,19 +45,15 @@
             z-index: 1100;
         }
 
-        /* Khi đóng: Đẩy Sidebar ra khỏi màn hình */
         #sidebar.collapsed {
             transform: translateX(-100%);
         }
 
-        /* NÚT TOGGLE LƠ LỬNG SÁT MÉP */
         .toggle-wrapper {
             position: fixed;
             left: calc(var(--sidebar-w) - 5px);
-            /* Đưa nút lên giữa màn hình */
             top: 50%;
             transform: translateY(-50%);
-
             z-index: 1200;
             transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
                         transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -72,10 +67,9 @@
         .toggle-btn:hover {
             background: var(--red);
             color: white;
-            transform: scale(1.1); /* Phóng to nhẹ khi rê chuột vào */
+            transform: scale(1.1);
         }
 
-        /* TOPBAR & MAIN CONTENT */
         #topbar {
             position: fixed;
             top: 0;
@@ -100,21 +94,48 @@
             min-height: calc(100vh - var(--topbar-h));
         }
 
-        /* Khi ẩn sidebar: Tràn nội dung ra */
         #sidebar.collapsed ~ #topbar,
         #sidebar.collapsed ~ #main-content {
             left: 0;
             margin-left: 0;
         }
 
-        /* Giữ các style bổ trợ */
         .sidebar-logo { height: var(--topbar-h); display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid var(--border); }
         .logo-text { color: var(--red); font-weight: 700; margin-left: 10px; }
-        .nav-item-link { padding: 12px 22px; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 12px; }
-        .nav-item-link.active { color: var(--red); background: var(--red-glow); border-right: 3px solid var(--red); }
+
+        /* Trạng thái mặc định */
+        .nav-item-link {
+            padding: 12px 22px;
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s ease;
+            margin: 4px 12px;
+            border-radius: 8px;
+            font-weight: 400;
+        }
+
+        /* 🔥 TRẠNG THÁI ACTIVE: Sẽ được JS kích hoạt */
+        .nav-item-link.active {
+            color: #ffffff !important;
+            background: var(--red) !important;
+            font-weight: 700 !important; /* In đậm mãi ở đây */
+            box-shadow: 0 4px 12px rgba(255, 46, 46, 0.4);
+        }
+
+        .nav-item-link.active i {
+            color: #ffffff !important;
+        }
+
+        .nav-item-link:hover {
+            color: var(--red);
+            background: var(--red-glow);
+        }
+
         .admin-badge { background: var(--red); color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; }
 
-        /* Nút toggle style từ file của bạn */
         .toggle-btn {
             background: var(--bg-4);
             border: 1px solid var(--border);
@@ -153,7 +174,6 @@
     </div>
 </aside>
 
-<!-- Nút toggle tách rời -->
 <div class="toggle-wrapper">
     <button class="toggle-btn" id="toggleBtn">
         <i class="bi bi-chevron-left" id="toggleIcon"></i>
