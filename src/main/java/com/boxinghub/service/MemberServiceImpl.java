@@ -35,6 +35,11 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public List<Member> searchByName(String keyword) {
+        // Nếu keyword là null hoặc chỉ có khoảng trắng, trả về tất cả
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return memberRepository.findAll();
+        }
+        // Ngược lại mới đi tìm theo tên
         return memberRepository.findByFullNameContainingIgnoreCase(keyword);
     }
 }

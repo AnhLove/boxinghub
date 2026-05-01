@@ -7,6 +7,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/admin/members")
 @RequiredArgsConstructor
@@ -16,8 +18,12 @@ public class MemberController {
 
     // Hiển thị danh sách member
     @GetMapping
-    public String listMembers(Model model) {
-        model.addAttribute("members", memberService.getAllMembers());
+    public String listMembers(@RequestParam(value = "keyword", required = false) String keyword,
+                              Model model) {
+        List<Member> members = memberService.searchByName(keyword);
+
+        model.addAttribute("members", members);
+        model.addAttribute("keyword", keyword);
         return "admin/members/list";
     }
 
