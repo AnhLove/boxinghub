@@ -24,7 +24,6 @@
 
     <!-- Stats -->
     <div class="row g-3 mb-4">
-        <!-- Tổng số lớp -->
         <div class="col-md-2">
             <div class="stat-card">
                 <div class="stat-icon red">
@@ -36,54 +35,78 @@
                 </div>
             </div>
         </div>
-        <!-- OPEN -->
         <div class="col-md-2">
             <div class="stat-card">
                 <div class="stat-icon green">
                     <i class="bi bi-unlock"></i>
                 </div>
                 <div>
-                    <div class="stat-num" th:text="${groupClasses.?[status.name() == 'OPEN'].size()}">0</div>
+                    <div class="stat-num" th:text="${groupClasses.?[status != null && status.name() == 'OPEN'].size()}">0</div>
                     <div class="stat-label">Đang mở</div>
                 </div>
             </div>
         </div>
-        <!-- FULL -->
         <div class="col-md-3">
             <div class="stat-card">
                 <div class="stat-icon orange">
                     <i class="bi bi-lock"></i>
                 </div>
                 <div>
-                    <div class="stat-num" th:text="${groupClasses.?[status.name() == 'FULL'].size()}">0</div>
+                    <div class="stat-num" th:text="${groupClasses.?[status != null && status.name() == 'FULL'].size()}">0</div>
                     <div class="stat-label">Đã đầy</div>
                 </div>
             </div>
         </div>
-        <!-- CLOSED (Lớp đã kết thúc) -->
         <div class="col-md-2">
             <div class="stat-card">
                 <div class="stat-icon dark">
                     <i class="bi bi-calendar-check"></i>
                 </div>
                 <div>
-                    <div class="stat-num" th:text="${groupClasses.?[status.name() == 'CLOSED'].size()}">0</div>
+                    <div class="stat-num" th:text="${groupClasses.?[status != null && status.name() == 'CLOSED'].size()}">0</div>
                     <div class="stat-label">Đã đóng</div>
                 </div>
             </div>
         </div>
-        <!-- CANCELLED -->
         <div class="col-md-3">
             <div class="stat-card">
                 <div class="stat-icon gray">
                     <i class="bi bi-x-circle"></i>
                 </div>
                 <div>
-                    <div class="stat-num" th:text="${groupClasses.?[status.name() == 'CANCELLED'].size()}">0</div>
+                    <div class="stat-num" th:text="${groupClasses.?[status != null && status.name() == 'CANCELLED'].size()}">0</div>
                     <div class="stat-label">Đã hủy</div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- 🔥 SEARCH BAR (Mới thêm) -->
+    <div class="card-box mb-4" style="padding: 15px;">
+        <form th:action="@{/admin/group-classes}" method="get" class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text" style="background: var(--bg-3); border: 1px solid var(--border); color: var(--text-muted);">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" name="keyword" th:value="${keyword}"
+                           class="form-control"
+                           placeholder="Tìm tên lớp (ví dụ: Boxing 1)..."
+                           style="background: var(--bg-3); border: 1px solid var(--border); color: var(--text);">
+                </div>
+            </div>
+            <div class="col-md-auto">
+                <button type="submit" class="btn-red" style="padding: 7px 20px;">
+                    <i class="bi bi-filter"></i> Lọc
+                </button>
+                <a th:href="@{/admin/group-classes}" class="btn-edit" style="text-decoration: none; padding: 7px 15px;">
+                    <i class="bi bi-arrow-clockwise"></i> Làm mới
+                </a>
+            </div>
+            <div class="col-md-auto ms-auto" th:if="${keyword != null and keyword != ''}">
+                <span class="text-muted">Đang lọc theo: <strong th:text="${keyword}" style="color: var(--red)"></strong></span>
+            </div>
+        </form>
     </div>
 
     <!-- Table -->
@@ -120,15 +143,8 @@
                               th:text="${#temporals.format(gc.schedule, 'dd/MM/yyyy HH:mm')}"></span>
                         <span th:if="${gc.schedule == null}" class="text-muted">—</span>
                     </td>
-                    <td>
-                        <span th:if="${gc.durationMinutes != null}"
-                              th:text="${gc.durationMinutes + ' phút'}"></span>
-                        <span th:if="${gc.durationMinutes == null}" class="text-muted">—</span>
-                    </td>
-                    <td>
-                        <span th:if="${gc.capacity != null}" th:text="${gc.capacity}"></span>
-                        <span th:if="${gc.capacity == null}" class="text-muted">—</span>
-                    </td>
+                    <td th:text="${gc.durationMinutes != null ? gc.durationMinutes + ' phút' : '—'}"></td>
+                    <td th:text="${gc.capacity != null ? gc.capacity : '—'}"></td>
                     <td>
                         <span th:text="${gc.currentEnrolled}"></span>
                     </td>
@@ -138,11 +154,10 @@
                         <span th:if="${gc.price == null}" class="text-muted">—</span>
                     </td>
                     <td>
-                        <!-- Sửa lỗi hiển thị trạng thái bằng cách thêm .name() -->
                         <span th:if="${gc.status != null}" th:switch="${gc.status.name()}">
                             <span th:case="'OPEN'" class="badge-pill badge-active">OPEN</span>
                             <span th:case="'FULL'" class="badge-pill badge-inactive">FULL</span>
-                            <span th:case="'CLOSED'" class="badge-pill" style="background:#f5f5f5; color:#616161;">CLOSED</span>
+                            <span th:case="'CLOSED'" class="badge-pill" style="background:#424242; color:#fff;">CLOSED</span>
                             <span th:case="'CANCELLED'" class="badge-pill badge-cancelled">CANCELLED</span>
                             <span th:case="*" class="text-muted">—</span>
                         </span>
@@ -159,8 +174,8 @@
                 <tr th:if="${groupClasses.isEmpty()}">
                     <td colspan="10">
                         <div class="empty-state">
-                            <i class="bi bi-inbox"></i>
-                            <div>Chưa có lớp tập nào. <a href="/admin/group-classes/new" style="color:var(--red)">Thêm ngay!</a></div>
+                            <i class="bi bi-search"></i>
+                            <div>Không tìm thấy lớp học nào. <a th:href="@{/admin/group-classes}" style="color:var(--red)">Xem tất cả!</a></div>
                         </div>
                     </td>
                 </tr>

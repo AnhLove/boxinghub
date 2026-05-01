@@ -8,6 +8,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/admin/group-classes")
 public class GroupClassController {
@@ -21,8 +23,13 @@ public class GroupClassController {
     }
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("groupClasses", groupClassService.getAllGroupClasses());
+    public String list(@RequestParam(name = "keyword", required = false) String keyword,
+                       Model model) {
+        // Quan trọng: Nếu keyword là null hoặc rỗng, Service phải trả về findAll()
+        List<GroupClass> groupClasses = groupClassService.findByClassName(keyword);
+
+        model.addAttribute("groupClasses", groupClasses);
+        model.addAttribute("keyword", keyword);
         return "admin/group-classes/list";
     }
 

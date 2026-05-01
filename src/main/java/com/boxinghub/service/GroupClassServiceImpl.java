@@ -31,6 +31,8 @@ public class GroupClassServiceImpl implements GroupClassService {
     @Transactional
     public GroupClass saveGroupClass(GroupClass groupClass) {
         if (groupClass.getCurrentEnrolled() == null) groupClass.setCurrentEnrolled(0);
+        // Đảm bảo có sức chứa mặc định nếu admin quên nhập
+        if (groupClass.getCapacity() == null) groupClass.setCapacity(30);
 
         LocalDateTime now = LocalDateTime.now();
         int duration = (groupClass.getDurationMinutes() != null) ? groupClass.getDurationMinutes() : 120;
@@ -66,7 +68,11 @@ public class GroupClassServiceImpl implements GroupClassService {
 
     @Override
     public List<GroupClass> findByClassName(String keyword) {
-        return groupClassRepository.findByClassNameContainingIgnoreCase(keyword);
+        // Nếu không có từ khóa, phải hiện TẤT CẢ lớp
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return groupClassRepository.findAll();
+        }
+        return groupClassRepository.findByClassNameContainingIgnoreCase(keyword.trim());
     }
 
     @Override
