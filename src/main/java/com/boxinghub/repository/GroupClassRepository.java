@@ -13,4 +13,6 @@ public interface GroupClassRepository extends JpaRepository<GroupClass, Long> {
 
     // Lọc lớp học trong khoảng thời gian (Dùng cho Upcoming Classes)
     List<GroupClass> findByScheduleBetweenOrderByScheduleAsc(LocalDateTime start, LocalDateTime end);
+    // Tìm các lớp có trạng thái nhất định và thời gian bắt đầu trước một mốc cụ thể
+    List<GroupClass> findByStatusAndScheduleBefore(ClassStatus status, LocalDateTime dateTime);
 }

@@ -38,5 +38,6 @@ public class GroupClass extends BaseEntity {
     private Double price; // Giá 1 buổi
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 20)
     private ClassStatus status; // OPEN, FULL, CANCELLED
 }

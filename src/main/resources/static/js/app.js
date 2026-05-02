@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     const currentPath = window.location.pathname;
-        const navLinks = document.querySelectorAll('.nav-item-link');
+    const navLinks = document.querySelectorAll('.nav-item-link');
 
         navLinks.forEach(link => {
             const linkPath = link.getAttribute('href');
@@ -49,5 +49,24 @@ document.addEventListener("DOMContentLoaded", function() {
             } else {
                 link.classList.remove('active');
             }
-        });
+        });// --- GIỮ NGUYÊN LOGIC CŨ NHƯNG TỐI ƯU ĐIỀU KIỆN ---
+               const currentPath = window.location.pathname;
+               const navLinks = document.querySelectorAll('.nav-item-link');
+
+               navLinks.forEach(link => {
+                   const linkPath = link.getAttribute('href');
+
+                   // Logic mới:
+                   // 1. Khớp chính xác hoàn toàn (Exact Match)
+                   // 2. HOẶC là trang con thực sự (đường dẫn hiện tại bắt đầu bằng linkPath + '/')
+                   // Điều này ngăn việc '/admin/group-classes' nhận nhầm '/admin/group-classes/schedule'
+                   const isExactMatch = currentPath === linkPath;
+                   const isSubPage = linkPath !== '/admin/dashboard' && currentPath.startsWith(linkPath + '/');
+
+                   if (isExactMatch || isSubPage) {
+                       link.classList.add('active');
+                   } else {
+                       link.classList.remove('active');
+                   }
+               });
 });
