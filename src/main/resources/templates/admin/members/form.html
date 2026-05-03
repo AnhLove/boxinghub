@@ -33,8 +33,11 @@
         <div class="p-4">
             <form th:action="@{/admin/members/save}" th:object="${member}" method="post">
 
-                <!-- ID -->
+                <!-- ID Member -->
                 <input type="hidden" th:field="*{id}">
+
+                <!-- ID User (Cần thiết để khi sửa không bị tạo User mới) -->
+                <input type="hidden" th:field="*{user.id}">
 
                 <!-- Họ tên -->
                 <div class="mb-3">
@@ -48,8 +51,9 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label">Email *</label>
+                        <!-- SỬA TẠI ĐÂY: Trỏ vào user.email -->
                         <input type="email" class="form-control"
-                               th:field="*{email}"
+                               th:field="*{user.email}"
                                placeholder="example@gmail.com" required>
                     </div>
                     <div class="col-md-6">
@@ -66,17 +70,18 @@
                         <label class="form-label">Giới tính</label>
                         <select class="form-select" th:field="*{gender}">
                             <option value="">-- Chọn giới tính --</option>
-                            <option value="MALE">Nam</option>
-                            <option value="FEMALE">Nữ</option>
+                            <!-- Sử dụng Enum name để đồng bộ dữ liệu -->
+                            <option th:value="MALE">Nam</option>
+                            <option th:value="FEMALE">Nữ</option>
                         </select>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Cấp độ</label>
                         <select class="form-select" th:field="*{level}">
                             <option value="">-- Chọn cấp độ --</option>
-                            <option value="BEGINNER">Beginner</option>
-                            <option value="INTERMEDIATE">Intermediate</option>
-                            <option value="ADVANCED">Advanced</option>
+                            <option th:value="BEGINNER">Beginner</option>
+                            <option th:value="INTERMEDIATE">Intermediate</option>
+                            <option th:value="ADVANCED">Advanced</option>
                         </select>
                     </div>
                 </div>
@@ -111,7 +116,6 @@
             </form>
         </div>
     </div>
-
 </div>
 
 </body>

@@ -22,25 +22,40 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // Cho phép xem tài nguyên tĩnh và các trang công khai
-                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/vendor/**").permitAll()
                         .requestMatchers("/", "/login", "/register", "/error").permitAll()
 
-                        // CHỈ ADMIN mới được vào Dashboard
+                        // Phân quyền rạch ròi
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/member/**").hasRole("MEMBER")
+                        .requestMatchers("/trainer/**").hasRole("TRAINER")
 
-                        // Các yêu cầu khác phải đăng nhập
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/admin/dashboard", true) // Thành công thì vào thẳng Dashboard
+                        // Xóa cái defaultSuccessUrl cũ đi
+                        .successHandler((request, response, authentication) -> {
+                            // Logic điều hướng dựa trên Role
+                            var authorities = authentication.getAuthorities();
+                            for (var auth : authorities) {
+                                if (auth.getAuthority().equals("ROLE_ADMIN")) {
+                                    response.sendRedirect("/admin/dashboard");
+                                    return;
+                                } else if (auth.getAuthority().equals("ROLE_MEMBER")) {
+                                    response.sendRedirect("/member/dashboard");
+                                    return;
+                                }
+                            }
+                            response.sendRedirect("/");
+                        })
                         .permitAll()
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
+                        .deleteCookies("JSESSIONID")
                         .permitAll()
                 );
 

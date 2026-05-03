@@ -21,6 +21,7 @@
         </a>
     </div>
 
+    <!-- Thống kê nhanh -->
     <div class="row g-3 mb-4">
         <div class="col-md-4">
             <div class="stat-card">
@@ -35,6 +36,7 @@
         </div>
     </div>
 
+    <!-- Thanh tìm kiếm -->
     <div class="card-box mb-4" style="padding: 15px;">
         <form th:action="@{/admin/members}" method="get" class="row g-2 align-items-center">
             <div class="col-md-5">
@@ -61,7 +63,7 @@
 
     <div class="card-box">
         <div class="card-box-header">
-            <i class="bi bi-list-ul"></i> Danh sách
+            <i class="bi bi-list-ul"></i> Danh sách học viên
         </div>
 
         <div style="overflow-x: auto;">
@@ -82,8 +84,11 @@
                 <tr th:each="member, stat : ${members}">
                     <td th:text="${stat.index + 1}"></td>
                     <td th:text="${member.fullName}"></td>
-                    <td th:text="${member.email}"></td>
-                    <td th:text="${member.phone != null ? member.phone : '—'}"></td>
+
+                    <!-- SỬA TẠI ĐÂY: Lấy email từ bảng User -->
+                    <td th:text="${member.user != null ? member.user.email : 'Chưa có tài khoản'}"></td>
+
+                    <td th:text="${member.phone != null && !member.phone.isEmpty() ? member.phone : '—'}"></td>
 
                     <td>
                         <span th:if="${member.gender != null}" th:text="${member.gender}"></span>
@@ -91,31 +96,32 @@
                     </td>
 
                     <td>
-                        <span th:if="${member.level == T(com.boxinghub.entity.Level).BEGINNER}"
-                              class="badge-pill badge-beginner">Beginner</span>
-                        <span th:if="${member.level == T(com.boxinghub.entity.Level).INTERMEDIATE}"
-                              class="badge-pill badge-intermediate">Intermediate</span>
-                        <span th:if="${member.level == T(com.boxinghub.entity.Level).ADVANCED}"
-                              class="badge-pill badge-advanced">Advanced</span>
+                        <!-- Hiển thị badge theo Level -->
+                        <span th:if="${member.level != null}">
+                            <span th:if="${member.level.name() == 'BEGINNER'}" class="badge-pill badge-beginner">Beginner</span>
+                            <span th:if="${member.level.name() == 'INTERMEDIATE'}" class="badge-pill badge-intermediate">Intermediate</span>
+                            <span th:if="${member.level.name() == 'ADVANCED'}" class="badge-pill badge-advanced">Advanced</span>
+                        </span>
                         <span th:if="${member.level == null}" class="text-muted">—</span>
                     </td>
 
                     <td>
-                        <a th:href="@{/admin/members/edit/{id}(id=${member.id})}"
-                           class="btn-edit">Sửa</a>
-                        <a th:href="@{/admin/members/delete/{id}(id=${member.id})}"
-                           class="btn-del"
-                           onclick="return confirm('Xóa học viên này?')">Xóa</a>
+                        <div class="d-flex gap-2">
+                            <a th:href="@{/admin/members/edit/{id}(id=${member.id})}"
+                               class="btn-edit">Sửa</a>
+                            <a th:href="@{/admin/members/delete/{id}(id=${member.id})}"
+                               class="btn-del"
+                               onclick="return confirm('Bạn có chắc chắn muốn xóa học viên này và tài khoản liên quan?')">Xóa</a>
+                        </div>
                     </td>
                 </tr>
 
+                <!-- Trường hợp danh sách trống -->
                 <tr th:if="${members.isEmpty()}">
                     <td colspan="7">
                         <div class="empty-state">
-                            <i class="bi bi-inbox"></i>
-                            <div>
-                                Chưa có học viên nào.
-                            </div>
+                            <i class="bi bi-inbox" style="font-size: 2rem; color: var(--text-muted);"></i>
+                            <div class="mt-2">Chưa có học viên nào phù hợp.</div>
                         </div>
                     </td>
                 </tr>

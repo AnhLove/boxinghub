@@ -1,23 +1,28 @@
 package com.boxinghub.service;
 
 import com.boxinghub.entity.Member;
+import com.boxinghub.entity.User;
 import java.util.List;
 import java.util.Optional;
 
 public interface MemberService {
 
-    // Lấy tất cả member
+    // --- Các hàm dành cho Admin quản lý ---
     List<Member> getAllMembers();
-
-    // Tìm theo id
     Optional<Member> getMemberById(Long id);
-
-    // Thêm hoặc sửa member
     Member saveMember(Member member);
-
-    // Xóa member
     void deleteMember(Long id);
-
-    // Tìm theo tên
     List<Member> searchByName(String keyword);
+
+    // --- Các hàm dành cho luồng Member tự tương tác ---
+
+    // Tìm hồ sơ dựa trên email đăng nhập (Quan trọng nhất)
+    Optional<Member> getMemberByEmail(String email);
+
+    // Kiểm tra xem một User đã có hồ sơ Member chưa
+    // (Giúp phân biệt Member với Trainer/Admin khi login)
+    boolean hasProfile(User user);
+
+    // Đăng ký mới một Member (Bao gồm cả việc tạo User và hồ sơ Member)
+    Member registerNewMember(Member member, User user);
 }

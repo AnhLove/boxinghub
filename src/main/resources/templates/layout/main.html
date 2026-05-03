@@ -1,154 +1,49 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title layout:title-pattern="$CONTENT_TITLE | BoxingHub Admin">BoxingHub Admin</title>
+    <!-- pattern tự động đổi tiêu đề theo từng trang -->
+    <title layout:title-pattern="$CONTENT_TITLE | BoxingHub">BoxingHub</title>
 
     <!-- LIB -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
-    <!-- GIỮ NGUYÊN FILE CSS CỦA BẠN -->
+    <!-- CSS của bạn -->
     <link rel="stylesheet" th:href="@{/css/theme.css}">
     <link rel="stylesheet" th:href="@{/css/layout.css}">
 
     <style>
-        :root {
-            --sidebar-w: 240px;
-            --topbar-h: 60px;
-        }
+        :root { --sidebar-w: 240px; --topbar-h: 60px; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; }
 
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            margin: 0;
-            overflow-x: hidden;
-            transition: background 0.3s;
-        }
-
-        #sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: var(--sidebar-w);
-            height: 100vh;
-            background: var(--bg-2);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1100;
-        }
-
-        #sidebar.collapsed {
-            transform: translateX(-100%);
-        }
-
-        .toggle-wrapper {
-            position: fixed;
-            left: calc(var(--sidebar-w) - 5px);
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 1200;
-            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        #sidebar.collapsed ~ .toggle-wrapper {
-            left: -10px;
-            transform: translateY(-50%);
-        }
-
-        .toggle-btn:hover {
-            background: var(--red);
-            color: white;
-            transform: scale(1.1);
-        }
-
-        #topbar {
-            position: fixed;
-            top: 0;
-            left: var(--sidebar-w);
-            right: 0;
-            height: var(--topbar-h);
-            background: var(--bg-2);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            padding: 0 25px;
-            align-items: center;
-            transition: left 0.3s ease;
-            z-index: 1000;
-        }
-
-        #main-content {
-            margin-left: var(--sidebar-w);
-            margin-top: var(--topbar-h);
-            padding: 30px;
-            transition: margin-left 0.3s ease;
-            min-height: calc(100vh - var(--topbar-h));
-        }
-
-        #sidebar.collapsed ~ #topbar,
-        #sidebar.collapsed ~ #main-content {
-            left: 0;
-            margin-left: 0;
-        }
-
+        /* Sidebar Styles */
+        #sidebar { position: fixed; top: 0; left: 0; width: var(--sidebar-w); height: 100vh; background: var(--bg-2); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: transform 0.3s ease; z-index: 1100; }
+        #sidebar.collapsed { transform: translateX(-100%); }
         .sidebar-logo { height: var(--topbar-h); display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid var(--border); }
-        .logo-text { color: var(--red); font-weight: 700; margin-left: 10px; }
+        .logo-text { color: var(--red); font-weight: 700; margin-left: 10px; font-family: 'Barlow Condensed', sans-serif; font-size: 1.5rem; }
 
-        /* Trạng thái mặc định */
-        .nav-item-link {
-            padding: 12px 22px;
-            color: var(--text-muted);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: all 0.2s ease;
-            margin: 4px 12px;
-            border-radius: 8px;
-            font-weight: 400;
-        }
+        /* Navigation Links */
+        .nav-item-link { padding: 12px 22px; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 12px; transition: all 0.2s ease; margin: 4px 12px; border-radius: 8px; }
+        .nav-item-link.active { color: #ffffff !important; background: var(--red) !important; font-weight: 700; box-shadow: 0 4px 12px rgba(255, 46, 46, 0.4); }
+        .nav-item-link:hover { color: var(--red); background: var(--red-glow); }
+        .menu-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin: 20px 25px 5px; font-weight: 600; }
 
-        /* 🔥 TRẠNG THÁI ACTIVE: Sẽ được JS kích hoạt */
-        .nav-item-link.active {
-            color: #ffffff !important;
-            background: var(--red) !important;
-            font-weight: 700 !important; /* In đậm mãi ở đây */
-            box-shadow: 0 4px 12px rgba(255, 46, 46, 0.4);
-        }
+        /* Topbar & Content */
+        #topbar { position: fixed; top: 0; left: var(--sidebar-w); right: 0; height: var(--topbar-h); background: var(--bg-2); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; padding: 0 25px; align-items: center; transition: left 0.3s ease; z-index: 1000; }
+        #main-content { margin-left: var(--sidebar-w); margin-top: var(--topbar-h); padding: 30px; transition: margin-left 0.3s ease; min-height: calc(100vh - var(--topbar-h)); }
+        #sidebar.collapsed ~ #topbar, #sidebar.collapsed ~ #main-content { left: 0; margin-left: 0; }
 
-        .nav-item-link.active i {
-            color: #ffffff !important;
-        }
-
-        .nav-item-link:hover {
-            color: var(--red);
-            background: var(--red-glow);
-        }
-
-        .admin-badge { background: var(--red); color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; }
-
-        .toggle-btn {
-            background: var(--bg-4);
-            border: 1px solid var(--border);
-            color: var(--text);
-            border-radius: 6px;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
+        /* Badge & Buttons */
+        .admin-badge { background: var(--red); color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .toggle-btn { background: var(--bg-4); border: 1px solid var(--border); color: var(--text); border-radius: 6px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .toggle-wrapper { position: fixed; left: calc(var(--sidebar-w) - 18px); top: 50%; transform: translateY(-50%); z-index: 1200; transition: left 0.3s ease; }
+        #sidebar.collapsed ~ .toggle-wrapper { left: 10px; }
     </style>
 </head>
 <body>
@@ -159,34 +54,54 @@
     </div>
 
     <div class="nav-list mt-3">
-        <a href="/admin/dashboard"
+        <!-- 1. DASHBOARD (Chung - Tự chuyển link theo Role) -->
+        <a th:href="${#authorization.expression('hasRole(''ADMIN'')') ? '/admin/dashboard' : '/member/dashboard'}"
            class="nav-item-link"
            th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
             <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
         </a>
 
-        <a href="/admin/members"
-           class="nav-item-link"
-           th:classappend="${activePage == 'members'} ? 'active' : ''">
-            <i class="bi bi-people"></i> <span>Học viên</span>
-        </a>
+        <!-- 2. MENU CHO ADMIN -->
+        <th:block sec:authorize="hasRole('ADMIN')">
+            <div class="menu-label">Quản trị viên</div>
+            <a href="/admin/members" class="nav-item-link" th:classappend="${activePage == 'members'} ? 'active' : ''">
+                <i class="bi bi-people"></i> <span>Học viên</span>
+            </a>
+            <a href="/admin/trainers" class="nav-item-link" th:classappend="${activePage == 'trainers'} ? 'active' : ''">
+                <i class="bi bi-person-badge"></i> <span>Huấn luyện viên</span>
+            </a>
+            <a href="/admin/group-classes" class="nav-item-link" th:classappend="${activePage == 'group-classes'} ? 'active' : ''">
+                <i class="bi bi-collection"></i> <span>Lớp tập nhóm</span>
+            </a>
+        </th:block>
 
-        <a href="/admin/trainers"
-           class="nav-item-link"
-           th:classappend="${activePage == 'trainers'} ? 'active' : ''">
-            <i class="bi bi-person-badge"></i> <span>Huấn luyện viên</span>
-        </a>
+        <!-- 3. MENU CHO MEMBER (Học viên) -->
+        <th:block sec:authorize="hasRole('MEMBER')">
+            <div class="menu-label">Cá nhân</div>
+            <a href="/member/schedule" class="nav-item-link" th:classappend="${activePage == 'my-schedule'} ? 'active' : ''">
+                <i class="bi bi-calendar-check"></i> <span>Đăng ký tập</span>
+            </a>
+            <a href="/member/history" class="nav-item-link" th:classappend="${activePage == 'history'} ? 'active' : ''">
+                <i class="bi bi-clock-history"></i> <span>Lịch sử tập</span>
+            </a>
+        </th:block>
 
-        <a href="/admin/group-classes"
-           class="nav-item-link"
-           th:classappend="${activePage == 'group-classes'} ? 'active' : ''">
-            <i class="bi bi-collection"></i> <span>Lớp tập nhóm</span>
-        </a>
+        <!-- 4. MENU CHO TRAINER (HLV - Nhánh riêng bạn yêu cầu) -->
+        <th:block sec:authorize="hasRole('TRAINER')">
+            <div class="menu-label">Huấn luyện viên</div>
+            <a href="/trainer/classes" class="nav-item-link">
+                <i class="bi bi-list-task"></i> <span>Lớp phụ trách</span>
+            </a>
+            <a href="/trainer/salary" class="nav-item-link">
+                <i class="bi bi-currency-dollar"></i> <span>Lương & Thưởng</span>
+            </a>
+        </th:block>
 
+        <div class="menu-label">Hệ thống</div>
         <a href="/admin/group-classes/schedule"
            class="nav-item-link"
            th:classappend="${activePage == 'schedule'} ? 'active' : ''">
-            <i class="bi bi-calendar3"></i> <span>Lịch tập nhóm</span>
+            <i class="bi bi-calendar3"></i> <span>Lịch tổng quát</span>
         </a>
     </div>
 </aside>
@@ -198,22 +113,42 @@
 </div>
 
 <header id="topbar">
-    <div class="d-flex align-items-center">
-        <span style="font-weight: 500; color: var(--text-muted);">Hệ thống quản lý</span>
+    <div class="d-flex align-items-center gap-2">
+        <span style="font-weight: 500; color: var(--text-muted);" th:text="${pageTitle != null ? pageTitle : 'Hệ thống quản lý'}">Trang chủ</span>
     </div>
 
-    <div style="display:flex; gap:15px; align-items:center;">
+    <div class="d-flex gap-3 align-items-center">
+        <!-- Nút đổi theme -->
         <button class="toggle-btn" id="themeBtn">
             <i class="bi bi-moon-stars" id="themeIcon"></i>
         </button>
-        <span class="admin-badge">ADMIN</span>
+
+        <!-- Thông tin User đang login -->
+        <div class="d-flex align-items-center gap-2 border-start ps-3">
+            <div class="text-end d-none d-md-block">
+                <div style="font-size: 0.85rem; font-weight: 600;" sec:authentication="name">Username</div>
+                <!-- Hiển thị Role Badge động -->
+                <span class="admin-badge"
+                      th:text="${#authorization.expression('hasRole(''ADMIN'')') ? 'ADMIN' :
+                               (#authorization.expression('hasRole(''TRAINER'')') ? 'TRAINER' : 'MEMBER')}">ROLE</span>
+            </div>
+
+            <!-- Nút Đăng xuất -->
+            <form th:action="@{/logout}" method="post" style="margin: 0;">
+                <button type="submit" class="toggle-btn text-danger ms-2" title="Đăng xuất">
+                    <i class="bi bi-power"></i>
+                </button>
+            </form>
+        </div>
     </div>
 </header>
 
 <main id="main-content">
+    <!-- Fragment nội dung sẽ được chèn vào đây -->
     <div layout:fragment="content"></div>
 </main>
 
+<!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script th:src="@{/js/app.js}"></script>
 
