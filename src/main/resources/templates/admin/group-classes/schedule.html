@@ -4,38 +4,73 @@
       layout:decorate="~{layout/main}">
 <body>
 <div layout:fragment="content" th:with="activePage='schedule', pageTitle='Lịch tập nhóm'">
-    <div class="card-box" style="padding: 20px; background: white; border-radius: 10px;">
+
+    <style>
+        /* Container bao ngoài full màn hình trừ header */
+        .schedule-wrapper {
+            height: calc(100vh - 120px); /* Khấu trừ chiều cao của topbar và padding */
+            background: var(--bg-2);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+
+        #calendar {
+            height: 100%;
+        }
+
+        /* Tinh chỉnh CSS để nhìn chuyên nghiệp hơn */
+        .fc {
+            --fc-border-color: var(--border);
+            --fc-button-hover-bg-color: #c41a20;
+            --fc-button-active-bg-color: #a3161a;
+            font-size: 0.9rem;
+        }
+
+        /* Làm các nút bấm trông hiện đại hơn */
+        .fc .fc-button {
+            border-radius: 6px !important;
+            padding: 6px 12px !important;
+            font-weight: 500 !important;
+            box-shadow: none !important;
+        }
+
+        .fc .fc-button-primary {
+            background-color: #e31e24 !important;
+            border: none !important;
+        }
+
+        /* Màu tiêu đề các cột ngày */
+        .fc-col-header-cell {
+            background: rgba(0,0,0,0.02);
+            padding: 10px 0 !important;
+        }
+
+        [data-theme="dark"] .fc-col-header-cell {
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* Chỉnh thanh scrollbar bên trong lịch cho đẹp */
+        .fc-scroller::-webkit-scrollbar {
+            width: 6px;
+        }
+        .fc-scroller::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+    </style>
+
+    <div class="schedule-wrapper">
         <div id='calendar'></div>
     </div>
 
-    <!-- FullCalendar JS & CSS -->
+    <!-- FullCalendar Resources -->
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var calendarEl = document.getElementById('calendar');
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'timeGridWeek', // Xem theo tuần sẽ trực quan hơn cho phòng tập
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                },
-                slotMinTime: '06:00:00', // Giờ mở cửa
-                slotMaxTime: '22:00:00', // Giờ đóng cửa
-                locale: 'vi',
-                events: '/admin/group-classes/api/events', // Gọi đến API bạn vừa sửa ở trên
-                eventClick: function(info) {
-                    if (info.event.url) {
-                        window.location.href = info.event.url;
-                        return false;
-                    }
-                }
-            });
-            calendar.render();
-        });
-    </script>
+    <script th:src="@{/js/group-class-schedule.js}"></script>
 </div>
 </body>
 </html>
