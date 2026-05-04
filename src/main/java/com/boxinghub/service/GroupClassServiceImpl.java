@@ -108,4 +108,15 @@ public class GroupClassServiceImpl implements GroupClassService {
             return false;
         }).orElse(false);
     }
+
+    @Override
+    public List<GroupClass> findAllAvailableForMembers() {
+        LocalDateTime now = LocalDateTime.now();
+        // Thay vì chỉ lấy OPEN, hãy lấy cả những lớp chưa kết thúc
+        // Và việc lọc OPEN/CLOSED/FULL sẽ do hàm getStatus() ở Entity lo khi hiển thị ở giao diện
+
+        // Lấy những lớp có giờ bắt đầu + 120 phút vẫn lớn hơn thời gian hiện tại
+        LocalDateTime limitTime = now.minusMinutes(120);
+        return groupClassRepository.findByScheduleAfterOrderByScheduleAsc(limitTime);
+    }
 }

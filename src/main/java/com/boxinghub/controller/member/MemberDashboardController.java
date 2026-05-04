@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.Principal;
@@ -16,24 +18,51 @@ import java.security.Principal;
 public class MemberDashboardController {
 
     private final MemberService memberService;
+    private final com.boxinghub.service.GroupClassService groupClassService;
 
     @GetMapping("/dashboard")
     public String dashboard(Principal principal, Model model) {
-        // Lấy email từ người dùng đang đăng nhập thành công
         String email = principal.getName();
-
-        // Lấy hồ sơ cá nhân của chính học viên đó
         Member member = memberService.getMemberByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học viên"));
 
         model.addAttribute("member", member);
+
+        // Tạm thời truyền danh sách rỗng nếu chưa có logic Booking
+        // Sau này sẽ là: model.addAttribute("myClasses", memberService.getEnrolledClasses(member.getId()));
+        model.addAttribute("myClasses", new java.util.ArrayList<>());
+
         model.addAttribute("activePage", "dashboard");
         return "member/dashboard";
     }
 
+    @PostMapping("/enroll/{classId}")
+    public String enroll(@PathVariable Long classId, Principal principal, org.springframework.web.servlet.mvc.support.RedirectAttributes ra) {
+        String email = principal.getName();
+        Member member = memberService.getMemberByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Member"));
+
+        try {
+            memberService.enrollInClass(member.getId(), classId);
+            ra.addFlashAttribute("success", "Đăng ký thành công! Bạn đã được thêm vào lớp.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", e.getMessage()); // lỗi "Hết buổi", "Lớp đầy"
+        }
+
+        return "redirect:/member/schedule";
+    }
+
     @GetMapping("/schedule")
     public String mySchedule(Model model) {
+        // 2. Lấy danh sách lớp học thực tế từ Service
+        var list = groupClassService.findAllAvailableForMembers();
+        model.addAttribute("classes", list);
+
+        // 3. Truyền vào model với tên "classes" để khớp với th:each="c : ${classes}" ở HTML
+        model.addAttribute("classes", list);
+
         model.addAttribute("activePage", "schedule");
-        return "member/schedule"; // Trang này sẽ hiện lịch để member đăng ký tập
+        model.addAttribute("pageTitle", "Đăng ký tập");
+        return "member/schedule";
     }
 }

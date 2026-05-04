@@ -25,4 +25,6 @@ public interface MemberService {
 
     // Đăng ký mới một Member (Bao gồm cả việc tạo User và hồ sơ Member)
     Member registerNewMember(Member member, User user);
+
+    void enrollInClass(Long memberId, Long classId);
 }

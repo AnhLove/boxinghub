@@ -4,10 +4,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "users")
 @Data
+@NoArgsConstructor
 public class User extends BaseEntity {
     @Column(nullable = false)
     private String fullName; // Để hiển thị "Xin chào, Nguyễn Văn A" trên Topbar

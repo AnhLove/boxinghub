@@ -38,7 +38,7 @@
             <div class="stat-card">
                 <div class="stat-icon red"><i class="bi bi-trophy"></i></div>
                 <div>
-                    <div class="stat-num" th:text="${member.level}">BEGINNER</div>
+                    <div class="stat-num" th:text="${member.level != null ? member.level : 'N/A'}">BEGINNER</div>
                     <div class="stat-label">Cấp độ hiện tại</div>
                 </div>
             </div>
@@ -47,7 +47,7 @@
             <div class="stat-card">
                 <div class="stat-icon" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;"><i class="bi bi-rulers"></i></div>
                 <div>
-                    <div class="stat-num" th:text="${member.height + ' cm'}">175 cm</div>
+                    <div class="stat-num" th:text="${member.height != null ? member.height + ' cm' : '--'}">175 cm</div>
                     <div class="stat-label">Chiều cao</div>
                 </div>
             </div>
@@ -56,7 +56,7 @@
             <div class="stat-card">
                 <div class="stat-icon" style="background: rgba(255, 193, 7, 0.1); color: #ffc107;"><i class="bi bi-speedometer"></i></div>
                 <div>
-                    <div class="stat-num" th:text="${member.weight + ' kg'}">70 kg</div>
+                    <div class="stat-num" th:text="${member.weight != null ? member.weight + ' kg' : '--'}">70 kg</div>
                     <div class="stat-label">Cân nặng</div>
                 </div>
             </div>

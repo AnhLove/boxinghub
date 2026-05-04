@@ -22,4 +22,5 @@ public interface GroupClassService {
     // Đăng ký và hủy đăng ký
     boolean enrollMember(Long classId, Long memberId);
     boolean cancelEnrollment(Long classId, Long memberId);
+    List<GroupClass> findAllAvailableForMembers();
 }

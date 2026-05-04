@@ -117,7 +117,7 @@ public class GroupClassController {
                 event.put("start", gc.getSchedule().format(formatter));
 
                 // Giả sử mỗi ca tập là 90 phút (bạn có thể chỉnh lại tùy ý)
-                event.put("end", gc.getSchedule().plusMinutes(90).format(formatter));
+                event.put("end", gc.getSchedule().plusMinutes(120).format(formatter));
             }
 
             // Màu sắc dựa trên trạng thái

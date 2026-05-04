@@ -118,37 +118,81 @@
             font-size: 0.8rem;
             color: #999;
         }
+
+        /* Thông báo đăng ký thành công */
+        .success-msg {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            border: 1px solid #c3e6cb;
+            text-align: left;
+        }
+
+        /* Liên kết chuyển sang trang đăng ký */
+        .register-link {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .register-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .register-link a:hover {
+            color: #ef233c;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
 
 <div class="login-card">
     <div style="font-size: 3rem; color: var(--primary-color); margin-bottom: 15px;">
-        <i class="fas fa-mitten"></i> <!-- Icon găng tay boxing -->
+        <i class="fas fa-mitten"></i>
     </div>
     <h2>BoxingHub</h2>
     <p>Hệ thống quản lý phòng tập chuyên nghiệp</p>
 
-    <!-- Thông báo lỗi -->
+    <!-- 1. Thông báo lỗi đăng nhập (Spring Security trả về qua param.error) -->
     <div th:if="${param.error}" class="error-msg">
         <i class="fas fa-exclamation-circle"></i> Email hoặc mật khẩu không chính xác!
     </div>
 
+    <!-- 2. Thông báo thành công (Khi Redirect từ trang Register sang) -->
+    <div th:if="${success}" class="success-msg">
+        <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+    </div>
+
+    <!-- 3. Form đăng nhập -->
     <form th:action="@{/login}" method="post">
         <div class="form-group">
-            <label>Email Admin</label>
+            <label>Email</label>
             <i class="fas fa-envelope"></i>
-            <input type="email" name="username" placeholder="" required>
+            <input type="email" name="username" placeholder="Nhập email của bạn" required>
         </div>
 
         <div class="form-group">
             <label>Mật khẩu</label>
             <i class="fas fa-lock"></i>
-            <input type="password" name="password" placeholder="" required>
+            <input type="password" name="password" placeholder="Nhập mật khẩu" required>
         </div>
 
         <button type="submit" class="btn-login">Đăng nhập ngay</button>
     </form>
+
+    <!-- 4. Link chuyển sang trang đăng ký -->
+    <div class="register-link">
+        Bạn là hội viên mới? <a th:href="@{/register}">Đăng ký tài khoản</a>
+    </div>
 
     <div class="footer-text">
         &copy; 2026 BoxingHub Management System
