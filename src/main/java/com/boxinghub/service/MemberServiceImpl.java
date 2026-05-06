@@ -90,60 +90,58 @@ public class MemberServiceImpl implements MemberService {
     }
 
     // --- LOGIC QUAN TRỌNG: ĐĂNG KÝ LỚP ---
-      @Override
+//    @Override
 //    @Transactional
 //    public void enrollInClass(Long memberId, Long classId) {
 //        Member member = memberRepository.findById(memberId).orElseThrow();
 //        GroupClass groupClass = groupClassRepository.findById(classId).orElseThrow();
 //
-//        // 1. Check tồn tại
 //        if (member.getEnrolledClasses().contains(groupClass)) {
 //            throw new RuntimeException("Bạn đã đăng ký lớp này rồi!");
 //        }
 //
-//        // 2. Check sĩ số (Lấy trực tiếp từ field currentEnrolled)
+//        // Kiểm tra sức chứa dựa trên danh sách thực tế (nếu cần) hoặc biến đếm
 //        if (groupClass.getCurrentEnrolled() >= groupClass.getCapacity()) {
-//            groupClass.setStatus(ClassStatus.FULL); // Cập nhật trạng thái nếu đầy
-//            groupClassRepository.save(groupClass);
 //            throw new RuntimeException("Lớp học đã đầy chỗ!");
 //        }
 //
-//        // 3. Thực hiện nghiệp vụ
-//        member.getEnrolledClasses().add(groupClass); // Thêm vào list (JPA tự handle bảng trung gian)
+//        // Thực hiện đăng ký
+//        member.getEnrolledClasses().add(groupClass);
 //        member.setRemainingSessions(member.getRemainingSessions() - 1);
 //
-//        // Tăng sĩ số trực tiếp
+//        // Tăng sĩ số và lưu
 //        groupClass.setCurrentEnrolled(groupClass.getCurrentEnrolled() + 1);
 //
-//        // 4. Kiểm tra xem sau khi tăng đã đầy chưa để update status
-//        if (groupClass.getCurrentEnrolled() >= groupClass.getCapacity()) {
-//            groupClass.setStatus(ClassStatus.FULL);
-//        }
-//
-//        // Chỉ cần save member và groupClass là đủ
 //        memberRepository.save(member);
 //        groupClassRepository.save(groupClass);
 //    }
-
+    @Override
     @Transactional
     public void enrollInClass(Long memberId, Long classId) {
-        Member member = memberRepository.findById(memberId).orElseThrow();
-        GroupClass groupClass = groupClassRepository.findById(classId).orElseThrow();
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy học viên"));
+        GroupClass groupClass = groupClassRepository.findById(classId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
 
+        // 1. KIỂM TRA SỐ BUỔI TẬP CÒN LẠI (Quan trọng để fix lỗi -1)
+        if (member.getRemainingSessions() == null || member.getRemainingSessions() <= 0) {
+            throw new RuntimeException("Bạn không còn buổi tập nào. Vui lòng liên hệ Admin để nạp thêm!");
+        }
+
+        // 2. Kiểm tra đã đăng ký chưa
         if (member.getEnrolledClasses().contains(groupClass)) {
             throw new RuntimeException("Bạn đã đăng ký lớp này rồi!");
         }
 
-        // Kiểm tra sức chứa dựa trên danh sách thực tế (nếu cần) hoặc biến đếm
+        // 3. Kiểm tra sĩ số lớp
         if (groupClass.getCurrentEnrolled() >= groupClass.getCapacity()) {
             throw new RuntimeException("Lớp học đã đầy chỗ!");
         }
 
-        // Thực hiện đăng ký
+        // 4. Thực hiện nghiệp vụ khi đủ điều kiện
         member.getEnrolledClasses().add(groupClass);
-        member.setRemainingSessions(member.getRemainingSessions() - 1);
+        member.setRemainingSessions(member.getRemainingSessions() - 1); // Trừ buổi tập an toàn
 
-        // Tăng sĩ số và lưu
         groupClass.setCurrentEnrolled(groupClass.getCurrentEnrolled() + 1);
 
         memberRepository.save(member);
