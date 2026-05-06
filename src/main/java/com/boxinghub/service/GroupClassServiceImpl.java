@@ -31,20 +31,15 @@ public class GroupClassServiceImpl implements GroupClassService {
     @Transactional
     public GroupClass saveGroupClass(GroupClass groupClass) {
         if (groupClass.getCurrentEnrolled() == null) groupClass.setCurrentEnrolled(0);
-        // Đảm bảo có sức chứa mặc định nếu admin quên nhập
         if (groupClass.getCapacity() == null) groupClass.setCapacity(30);
 
-        LocalDateTime now = LocalDateTime.now();
-        int duration = (groupClass.getDurationMinutes() != null) ? groupClass.getDurationMinutes() : 120;
-
-        if (groupClass.getSchedule() != null) {
-            LocalDateTime endTime = groupClass.getSchedule().plusMinutes(duration);
-
-            if (now.isAfter(endTime)) {
-                groupClass.setStatus(ClassStatus.CLOSED);
-            } else if (groupClass.getCurrentEnrolled() >= groupClass.getCapacity()) {
+        // CHỈ cập nhật trạng thái tự động liên quan đến sức chứa
+        // Đừng ép CLOSED dựa trên thời gian ở đây
+        if (groupClass.getStatus() != ClassStatus.CANCELLED) {
+            if (groupClass.getCurrentEnrolled() >= groupClass.getCapacity()) {
                 groupClass.setStatus(ClassStatus.FULL);
-            } else if (groupClass.getStatus() != ClassStatus.CANCELLED) {
+            } else {
+                // Nếu chưa đầy và không bị hủy, hãy để là OPEN
                 groupClass.setStatus(ClassStatus.OPEN);
             }
         }

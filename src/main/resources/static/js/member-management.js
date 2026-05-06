@@ -3,7 +3,7 @@
  * Chứa logic cho Modal nạp buổi tập
  */
 window.openSessionModal = function(memberId, memberName) {
-    console.log("Bấm nút nạp cho ID:", memberId); 
+    console.log("Bấm nút nạp cho ID:", memberId);
 
     const idInput = document.getElementById('modalMemberId');
     const nameDisplay = document.getElementById('displayMemberName');
