@@ -30,16 +30,23 @@
   <div class="row g-4">
     <!-- Lặp qua danh sách classes từ Controller -->
     <div class="col-md-6 col-lg-4" th:each="c : ${classes}">
+      <!-- Thêm logic kiểm tra xem member đã đăng ký lớp c này chưa -->
       <div class="card-box h-100 d-flex flex-column justify-content-between border-top border-4"
-           th:styleappend="${c.currentEnrolled >= c.capacity} ? 'border-color: #6c757d !important;' : 'border-color: var(--red) !important;'">
+           th:with="isEnrolled=${member.enrolledClasses.contains(c)}"
+           th:styleappend="${isEnrolled} ? 'border-color: #0d6efd !important;' : (${c.currentEnrolled >= c.capacity} ? 'border-color: #6c757d !important;' : 'border-color: var(--red) !important;')">
 
         <div>
           <div class="d-flex justify-content-between align-items-start mb-3">
             <h3 class="h5 mb-0 font-weight-bold" th:text="${c.className}">Boxing Cơ Bản</h3>
-            <span th:if="${c.status.name() == 'OPEN'}" class="badge bg-success">Còn trống</span>
-            <span th:if="${c.status.name() == 'FULL'}" class="badge bg-secondary">Hết chỗ</span>
-            <span th:if="${c.status.name() == 'CLOSED'}" class="badge bg-danger">Đã đóng</span>
-            <span th:if="${c.status.name() == 'CANCELLED'}" class="badge bg-dark">Đã hủy</span>
+
+            <!-- Hiển thị badge trạng thái dựa trên việc đã đăng ký hay chưa -->
+            <span th:if="${isEnrolled}" class="badge bg-primary">Đã đăng ký</span>
+            <th:block th:unless="${isEnrolled}">
+              <span th:if="${c.status.name() == 'OPEN'}" class="badge bg-success">Còn trống</span>
+              <span th:if="${c.status.name() == 'FULL'}" class="badge bg-secondary">Hết chỗ</span>
+              <span th:if="${c.status.name() == 'CLOSED'}" class="badge bg-danger">Đã đóng</span>
+              <span th:if="${c.status.name() == 'CANCELLED'}" class="badge bg-dark">Đã hủy</span>
+            </th:block>
           </div>
 
           <div class="mb-2 text-muted" style="font-size: 0.9rem;">
@@ -59,20 +66,31 @@
             </div>
             <div class="progress" style="height: 6px; background: var(--bg-3);">
               <div class="progress-bar" role="progressbar"
-                   th:style="'width: ' + (${c.currentEnrolled} * 100 / ${c.capacity}) + '%; background-color: var(--red);'"
+                   th:style="'width: ' + (${c.currentEnrolled} * 100 / ${c.capacity}) + '%; background-color: ' + (${isEnrolled} ? '#0d6efd' : 'var(--red)') + ';'"
                    th:aria-valuenow="${c.currentEnrolled}" th:aria-valuemin="0" th:aria-valuemax="${c.capacity}">
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Form đăng ký -->
-        <form th:action="@{/member/enroll/{id}(id=${c.id})}" method="post">
-          <button type="submit" class="btn-red w-100 py-2"
-                  th:disabled="${c.currentEnrolled >= c.capacity}">
-            <i class="bi bi-plus-circle me-1"></i> Đăng ký tham gia
-          </button>
-        </form>
+        <!-- Logic Nút bấm -->
+        <div class="mt-2">
+          <!-- Nếu ĐÃ đăng ký: Hiện nút Hủy tham gia -->
+          <form th:if="${isEnrolled}" th:action="@{/member/cancel/{id}(id=${c.id})}" method="post"
+                onsubmit="return confirm('Bạn có chắc chắn muốn hủy đăng ký lớp này?')">
+            <button type="submit" class="btn btn-outline-danger w-100 py-2 shadow-sm">
+              <i class="bi bi-x-circle me-1"></i> Hủy tham gia
+            </button>
+          </form>
+
+          <!-- Nếu CHƯA đăng ký: Hiện nút Đăng ký (Giữ nguyên code cũ của bạn) -->
+          <form th:unless="${isEnrolled}" th:action="@{/member/enroll/{id}(id=${c.id})}" method="post">
+            <button type="submit" class="btn-red w-100 py-2"
+                    th:disabled="${c.currentEnrolled >= c.capacity}">
+              <i class="bi bi-plus-circle me-1"></i> Đăng ký tham gia
+            </button>
+          </form>
+        </div>
       </div>
     </div>
 

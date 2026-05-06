@@ -2,6 +2,7 @@ package com.boxinghub.controller.member;
 
 import com.boxinghub.entity.Member;
 import com.boxinghub.service.MemberService;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -53,17 +54,28 @@ public class MemberDashboardController {
     }
 
     @GetMapping("/schedule")
-    public String mySchedule(Principal principal, Model model) { // Thêm Principal để lấy user hiện tại
+    @Transactional(readOnly = true) // Thêm dòng này để nạp được dữ liệu Lazy Loading
+    public String mySchedule(Principal principal, Model model) {
         String email = principal.getName();
+
+        // 1. Tìm member
         Member member = memberService.getMemberByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Member"));
 
+        // 2. Kích hoạt việc load danh sách lớp đã đăng ký (Lazy Loading)
+        if (member.getEnrolledClasses() != null) {
+            member.getEnrolledClasses().size();
+        }
+
+        // 3. Lấy danh sách tất cả các lớp đang mở
         var list = groupClassService.findAllAvailableForMembers();
 
-        model.addAttribute("member", member); // Thêm dòng này để hiện số buổi tập trên giao diện
+        // 4. Đưa dữ liệu vào model
+        model.addAttribute("member", member); // Quan trọng: member này chứa list enrolledClasses
         model.addAttribute("classes", list);
         model.addAttribute("activePage", "schedule");
         model.addAttribute("pageTitle", "Đăng ký tập");
+
         return "member/schedule";
     }
 
@@ -82,5 +94,24 @@ public class MemberDashboardController {
             ra.addFlashAttribute("error", "Không thể hủy lớp: " + e.getMessage());
         }
         return "redirect:/member/dashboard"; // Hủy xong về dashboard xem lịch
+    }
+
+    @GetMapping("/history")
+    @Transactional(readOnly = true)
+    public String history(Principal principal, Model model) {
+        String email = principal.getName();
+        Member member = memberService.getMemberByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Member"));
+
+        if (member.getEnrolledClasses() != null) {
+            member.getEnrolledClasses().size();
+        }
+        // Lấy danh sách lớp đã đăng ký từ đối tượng member
+        model.addAttribute("enrolledClasses", member.getEnrolledClasses());
+        model.addAttribute("member", member);
+        model.addAttribute("activePage", "history");
+        model.addAttribute("pageTitle", "Lịch sử tập luyện");
+
+        return "member/history";
     }
 }
