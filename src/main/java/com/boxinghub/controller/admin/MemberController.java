@@ -66,4 +66,17 @@ public class MemberController {
         memberService.deleteMember(id);
         return "redirect:/admin/members";
     }
+
+    @PostMapping("/add-sessions-direct")
+    public String addSessionsDirect(@RequestParam("id") Long id,
+                                    @RequestParam("amount") Integer amount,
+                                    org.springframework.web.servlet.mvc.support.RedirectAttributes ra) {
+        try {
+            memberService.addSessions(id, amount);
+            ra.addFlashAttribute("success", "Đã nạp thành công " + amount + " buổi tập.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Lỗi nạp buổi: " + e.getMessage());
+        }
+        return "redirect:/admin/members";
+    }
 }

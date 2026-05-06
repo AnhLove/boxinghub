@@ -1,9 +1,9 @@
 package com.boxinghub.service;
 
 import com.boxinghub.entity.GroupClass;
-import com.boxinghub.repository.GroupClassRepository;
 import com.boxinghub.entity.Member;
 import com.boxinghub.entity.User;
+import com.boxinghub.repository.GroupClassRepository;
 import com.boxinghub.repository.MemberRepository;
 import com.boxinghub.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +19,9 @@ import java.util.Optional;
 public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
-    private final UserRepository userRepository; // Thêm Repository để lưu User
-    private final PasswordEncoder passwordEncoder; // Thêm Encoder để mã hóa mật khẩu
-
-    private final com.boxinghub.repository.GroupClassRepository groupClassRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final GroupClassRepository groupClassRepository;
 
     @Override
     public List<Member> getAllMembers() {
@@ -38,25 +37,18 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public Member saveMember(Member member) {
         User user = member.getUser();
-
-        // 1. Xử lý logic cho User đi kèm
         if (user != null) {
             if (user.getId() == null) {
-                // Nếu là Member mới hoàn toàn
                 user.setFullName(member.getFullName());
                 user.setRole("ROLE_MEMBER");
-                user.setPassword(passwordEncoder.encode("123456")); // Mật khẩu mặc định
+                user.setPassword(passwordEncoder.encode("123456"));
                 user.setActive(true);
-                // Lưu User trước để có ID gắn vào Member
                 userRepository.save(user);
             } else {
-                // Nếu là cập nhật, đồng bộ lại tên nếu cần
                 user.setFullName(member.getFullName());
                 userRepository.save(user);
             }
         }
-
-        // 2. Lưu Member
         return memberRepository.save(member);
     }
 
@@ -86,23 +78,22 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public Member registerNewMember(Member member, User user) {
-        // Mã hóa mật khẩu khi member tự đăng ký
         if (user.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
         user.setRole("ROLE_MEMBER");
         user.setActive(true);
         userRepository.save(user);
-
         member.setUser(user);
         return memberRepository.save(member);
     }
 
+    // --- LOGIC QUAN TRỌNG: ĐĂNG KÝ LỚP ---
+    @Override
     @Transactional
     public void enrollInClass(Long memberId, Long classId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy học viên"));
-
         GroupClass groupClass = groupClassRepository.findById(classId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
 
@@ -112,7 +103,7 @@ public class MemberServiceImpl implements MemberService {
         }
 
         // 2. Kiểm tra số buổi tập còn lại
-        if (member.getRemainingSessions() <= 0) {
+        if (member.getRemainingSessions() == null || member.getRemainingSessions() <= 0) {
             throw new RuntimeException("Bạn đã hết buổi tập. Vui lòng nạp thêm!");
         }
 
@@ -121,12 +112,48 @@ public class MemberServiceImpl implements MemberService {
             throw new RuntimeException("Lớp học đã đầy chỗ!");
         }
 
-        // 4. THỰC HIỆN ĐĂNG KÝ
+        // 4. Thực hiện đăng ký (Cập nhật 2 chiều)
         member.getEnrolledClasses().add(groupClass);
-        member.setRemainingSessions(member.getRemainingSessions() - 1); // Trừ 1 buổi
-        groupClass.setCurrentEnrolled(groupClass.getCurrentEnrolled() + 1); // Tăng sĩ số
+        member.setRemainingSessions(member.getRemainingSessions() - 1);
+        groupClass.setCurrentEnrolled(groupClass.getCurrentEnrolled() + 1);
 
         memberRepository.save(member);
         groupClassRepository.save(groupClass);
+    }
+
+    // --- LOGIC QUAN TRỌNG: HỦY LỚP ---
+    @Override
+    @Transactional
+    public void cancelEnrollment(Long memberId, Long classId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy học viên"));
+        GroupClass groupClass = groupClassRepository.findById(classId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
+
+        // Kiểm tra xem thực sự có trong lớp không trước khi hủy
+        if (member.getEnrolledClasses().remove(groupClass)) {
+            // Hoàn lại 1 buổi tập
+            member.setRemainingSessions(member.getRemainingSessions() + 1);
+            // Giảm sĩ số lớp
+            groupClass.setCurrentEnrolled(Math.max(0, groupClass.getCurrentEnrolled() - 1));
+
+            memberRepository.save(member);
+            groupClassRepository.save(groupClass);
+        } else {
+            throw new RuntimeException("Bạn không tham gia lớp học này.");
+        }
+    }
+
+    // --- LOGIC QUAN TRỌNG: NẠP BUỔI (ADMIN) ---
+    @Override
+    @Transactional
+    public void addSessions(Long memberId, int amount) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy học viên"));
+
+        int current = (member.getRemainingSessions() != null) ? member.getRemainingSessions() : 0;
+        member.setRemainingSessions(current + amount);
+
+        memberRepository.save(member);
     }
 }

@@ -29,7 +29,7 @@
                     <i class="bi bi-people-fill"></i>
                 </div>
                 <div>
-                    <div class="stat-num" th:text="${members.size()}">0</div>
+                    <div class="stat-num" th:text="${members != null ? members.size() : 0}">0</div>
                     <div class="stat-label">Tổng học viên</div>
                 </div>
             </div>
@@ -75,6 +75,7 @@
                     <th>Email</th>
                     <th>Số điện thoại</th>
                     <th>Giới tính</th>
+                    <th>Số buổi tập</th>
                     <th>Cấp độ</th>
                     <th>Hành động</th>
                 </tr>
@@ -85,18 +86,26 @@
                     <td th:text="${stat.index + 1}"></td>
                     <td th:text="${member.fullName}"></td>
 
-                    <!-- SỬA TẠI ĐÂY: Lấy email từ bảng User -->
+                    <!-- Email an toàn -->
                     <td th:text="${member.user != null ? member.user.email : 'Chưa có tài khoản'}"></td>
 
                     <td th:text="${member.phone != null && !member.phone.isEmpty() ? member.phone : '—'}"></td>
 
+                    <!-- Sửa lỗi hiển thị Enum Gender -->
                     <td>
-                        <span th:if="${member.gender != null}" th:text="${member.gender}"></span>
+                        <span th:if="${member.gender != null}"
+                              th:text="${member.gender.name() == 'MALE' ? 'Nam' : 'Nữ'}"></span>
                         <span th:if="${member.gender == null}" class="text-muted">—</span>
                     </td>
 
+                    <!-- Số buổi tập -->
                     <td>
-                        <!-- Hiển thị badge theo Level -->
+                        <span class="badge bg-light text-dark border"
+                              th:text="${member.remainingSessions != null ? member.remainingSessions : 0}">0</span>
+                    </td>
+
+                    <td>
+                        <!-- Cấp độ -->
                         <span th:if="${member.level != null}">
                             <span th:if="${member.level.name() == 'BEGINNER'}" class="badge-pill badge-beginner">Beginner</span>
                             <span th:if="${member.level.name() == 'INTERMEDIATE'}" class="badge-pill badge-intermediate">Intermediate</span>
@@ -107,18 +116,26 @@
 
                     <td>
                         <div class="d-flex gap-2">
+                            <!-- Sử dụng data- attribute thay vì nhúng trực tiếp vào onclick để tránh lỗi dấu nháy -->
+                            <button type="button" class="btn-edit"
+                                    style="background-color: #28a745; color: white; border: none;"
+                                    th:data-id="${member.id}"
+                                    th:data-name="${member.fullName}"
+                                    onclick="openSessionModal(this.getAttribute('data-id'), this.getAttribute('data-name'))">
+                                Nạp
+                            </button>
                             <a th:href="@{/admin/members/edit/{id}(id=${member.id})}"
                                class="btn-edit">Sửa</a>
                             <a th:href="@{/admin/members/delete/{id}(id=${member.id})}"
                                class="btn-del"
-                               onclick="return confirm('Bạn có chắc chắn muốn xóa học viên này và tài khoản liên quan?')">Xóa</a>
+                               onclick="return confirm('Xóa học viên này?')">Xóa</a>
                         </div>
                     </td>
                 </tr>
 
-                <!-- Trường hợp danh sách trống -->
-                <tr th:if="${members.isEmpty()}">
-                    <td colspan="7">
+                <!-- Sửa colspan lên 8 cho khớp với thead -->
+                <tr th:if="${members == null || members.isEmpty()}">
+                    <td colspan="8">
                         <div class="empty-state">
                             <i class="bi bi-inbox" style="font-size: 2rem; color: var(--text-muted);"></i>
                             <div class="mt-2">Chưa có học viên nào phù hợp.</div>
@@ -129,7 +146,39 @@
             </table>
         </div>
     </div>
+<!-- Modal Nạp Buổi -->
+<div class="modal fade" id="addSessionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-2); border: 1px solid var(--border); color: var(--text);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border);">
+                <h5 class="modal-title">Nạp buổi tập cho: <span id="displayMemberName" class="text-danger"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <!-- Endpoint đã khớp với Controller -->
+            <form th:action="@{/admin/members/add-sessions-direct}" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="modalMemberId">
+                    <div class="mb-3">
+                        <label class="form-label">Số lượng buổi muốn nạp</label>
+                        <input type="number" name="amount" class="form-control"
+                               style="background: var(--bg-3); border: 1px solid var(--border); color: var(--text);"
+                               value="10" min="1" required>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--border);">
+                    <button type="button" class="btn-edit" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn-red">Xác nhận nạp</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
+</div>
+
+
+<th:block layout:fragment="script">
+    <script th:src="@{/js/member-management.js}"></script>
+</th:block>
 
 </body>
 </html>

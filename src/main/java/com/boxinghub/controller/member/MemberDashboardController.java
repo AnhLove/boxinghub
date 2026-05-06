@@ -53,16 +53,34 @@ public class MemberDashboardController {
     }
 
     @GetMapping("/schedule")
-    public String mySchedule(Model model) {
-        // 2. Lấy danh sách lớp học thực tế từ Service
+    public String mySchedule(Principal principal, Model model) { // Thêm Principal để lấy user hiện tại
+        String email = principal.getName();
+        Member member = memberService.getMemberByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Member"));
+
         var list = groupClassService.findAllAvailableForMembers();
-        model.addAttribute("classes", list);
 
-        // 3. Truyền vào model với tên "classes" để khớp với th:each="c : ${classes}" ở HTML
+        model.addAttribute("member", member); // Thêm dòng này để hiện số buổi tập trên giao diện
         model.addAttribute("classes", list);
-
         model.addAttribute("activePage", "schedule");
         model.addAttribute("pageTitle", "Đăng ký tập");
         return "member/schedule";
+    }
+
+    // Thêm Endpoint Hủy lớp
+    @PostMapping("/cancel/{classId}")
+    public String cancel(@PathVariable Long classId, Principal principal, org.springframework.web.servlet.mvc.support.RedirectAttributes ra) {
+        String email = principal.getName();
+        Member member = memberService.getMemberByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Member"));
+
+        try {
+            // Bạn cần thêm hàm cancelEnrollment vào MemberService
+            memberService.cancelEnrollment(member.getId(), classId);
+            ra.addFlashAttribute("success", "Đã hủy đăng ký và hoàn lại 1 buổi tập.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Không thể hủy lớp: " + e.getMessage());
+        }
+        return "redirect:/member/dashboard"; // Hủy xong về dashboard xem lịch
     }
 }

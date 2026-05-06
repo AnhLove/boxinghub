@@ -34,6 +34,7 @@ public class Member extends BaseEntity {
     private Double height;
 
     // Thêm các thông tin đặc thù cho Member
+    @Column(name = "remaining_sessions")
     private Integer remainingSessions = 0; // Số buổi tập còn lại
     @ManyToMany
     @JoinTable(
