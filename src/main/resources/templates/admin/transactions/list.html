@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}"
+      lang="vi">
+<head>
+    <title>Lịch sử nạp buổi tập</title>
+</head>
+<body>
+
+<div layout:fragment="content" th:with="activePage='transactions', pageTitle='Quản lý nạp buổi'">
+
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Quản lý giao dịch nạp</h1>
+            <p class="page-subtitle">Theo dõi và thực hiện nạp buổi tập cho học viên</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Cột trái: Form nạp tiền nhanh -->
+        <div class="col-md-4">
+            <div class="card-box">
+                <div class="card-box-header">
+                    <i class="bi bi-plus-circle-fill"></i> Thực hiện nạp nhanh
+                </div>
+                <div style="padding: 20px;">
+                    <form th:action="@{/admin/transactions/add-credit}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Chọn học viên</label>
+                            <select name="memberId" class="form-select select2-enable"
+                                    style="background: var(--bg-3); border: 1px solid var(--border); color: var(--text);" required>
+                                <option value="">-- Chọn học viên --</option>
+                                <option th:each="m : ${members}"
+                                        th:value="${m.id}"
+                                        th:text="${m.fullName + ' (' + m.phone + ')'}"></option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Số buổi tập</label>
+                            <input type="number" name="amount" class="form-control"
+                                   value="10" min="1"
+                                   style="background: var(--bg-3); border: 1px solid var(--border); color: var(--text);" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú</label>
+                            <textarea name="note" class="form-control" rows="2"
+                                      placeholder="Nạp trực tiếp, Khuyến mãi..."
+                                      style="background: var(--bg-3); border: 1px solid var(--border); color: var(--text);"></textarea>
+                        </div>
+                        <button type="submit" class="btn-red w-100">
+                            <i class="bi bi-check-circle"></i> Xác nhận nạp
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột phải: Bảng lịch sử giao dịch -->
+        <div class="col-md-8">
+            <div class="card-box">
+                <div class="card-box-header">
+                    <i class="bi bi-clock-history"></i> Lịch sử giao dịch gần đây
+                </div>
+                <div class="table-responsive" style="padding: 15px;">
+                    <!-- Hiển thị thông báo thành công/lỗi -->
+                    <div th:if="${success}" class="alert alert-success py-2 px-3" th:text="${success}"></div>
+                    <div th:if="${error}" class="alert alert-danger py-2 px-3" th:text="${error}"></div>
+
+                    <table class="admin-table">
+                        <thead>
+                        <tr>
+                            <th>Ngày & Giờ</th>
+                            <th>Học viên</th>
+                            <th>Số buổi</th>
+                            <th>Ghi chú</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="t : ${transactions}">
+                            <td th:text="${#temporals.format(t.transactionDate, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td>
+                                <span style="font-weight: 600;" th:text="${t.member.fullName}"></span>
+                            </td>
+                            <td>
+                                <span class="badge bg-success" th:text="${'+' + t.amount}"></span>
+                            </td>
+                            <td th:text="${t.note}" class="text-muted small"></td>
+                        </tr>
+                        <tr th:if="${transactions.isEmpty()}">
+                            <td colspan="4" class="text-center py-4 text-muted">Chưa có giao dịch nào.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
