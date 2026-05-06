@@ -17,23 +17,35 @@ public class ClassStatusScheduler {
         this.groupClassRepository = groupClassRepository;
     }
 
-    // cron = "0 * * * * *" nghĩa là chạy vào giây thứ 0 của mỗi phút
+//    @Scheduled(cron = "0 * * * * *")
+//    public void autoCloseExpiredClasses() {
+//        List<GroupClass> allOpen = groupClassRepository.findByStatus(ClassStatus.OPEN);
+//        LocalDateTime now = LocalDateTime.now();
+//
+//        for (GroupClass gClass : allOpen) {
+//            int duration = (gClass.getDurationMinutes() != null) ? gClass.getDurationMinutes() : 120;
+//            if (gClass.getSchedule().plusMinutes(duration).isBefore(now)) {
+//                gClass.setStatus(ClassStatus.CLOSED);
+//                groupClassRepository.save(gClass);
+//            }
+//        }
+//    }
+
     @Scheduled(cron = "0 * * * * *")
     public void autoCloseExpiredClasses() {
         LocalDateTime now = LocalDateTime.now();
+        // Tìm các lớp OPEN hoặc FULL để kiểm tra đóng
+        List<GroupClass> activeClasses = groupClassRepository.findAll();
 
-        // Lấy danh sách các lớp đang OPEN nhưng đã quá giờ (như trường hợp Boxing1 trong ảnh của bạn)
-        List<GroupClass> expiredClasses = groupClassRepository
-                .findByStatusAndScheduleBefore(ClassStatus.OPEN, now);
+        for (GroupClass gc : activeClasses) {
+            int duration = (gc.getDurationMinutes() != null) ? gc.getDurationMinutes() : 120;
+            LocalDateTime endTime = gc.getSchedule().plusMinutes(duration);
 
-        if (!expiredClasses.isEmpty()) {
-            for (GroupClass gClass : expiredClasses) {
-                gClass.setStatus(ClassStatus.CLOSED); // Chuyển sang CLOSED
+            // Chỉ đóng khi ĐÃ QUA GIỜ KẾ THÚC
+            if (now.isAfter(endTime) && gc.getStatus() != ClassStatus.CLOSED) {
+                gc.setStatus(ClassStatus.CLOSED);
+                groupClassRepository.save(gc);
             }
-            groupClassRepository.saveAll(expiredClasses);
-
-            // In ra console để bạn dễ theo dõi trong quá trình dev
-            System.out.println("LOG: Đã tự động đóng " + expiredClasses.size() + " lớp học quá hạn lúc " + now);
         }
     }
 }
