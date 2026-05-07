@@ -12,4 +12,7 @@ public interface CreditService {
 
     // Lấy lịch sử theo từng Member
     List<CreditTransaction> getMemberTransactions(Long memberId);
+
+    CreditTransaction createPaymentRequest(Long memberId, Integer sessions);
+    void approveTransaction(Long transactionId);
 }

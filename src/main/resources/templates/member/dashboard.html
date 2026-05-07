@@ -10,20 +10,21 @@
 
 <div layout:fragment="content" th:with="activePage='dashboard', pageTitle='Học viên'">
 
-    <!-- Header Cá nhân -->
     <div class="page-header d-flex justify-content-between align-items-center">
         <div>
             <h1 class="page-title">Chào mừng, <span th:text="${member.fullName}">Học viên</span>!</h1>
             <p class="page-subtitle">Hôm nay bạn đã sẵn sàng tập luyện chưa?</p>
         </div>
-        <div>
+        <div class="d-flex gap-2">
+            <a href="/member/topup" class="btn btn-outline-danger">
+                <i class="bi bi-wallet2"></i> Nạp buổi tập
+            </a>
             <a href="/member/schedule" class="btn-red">
                 <i class="bi bi-calendar-check"></i> Đăng ký lớp ngay
             </a>
         </div>
     </div>
 
-    <!-- Chỉ số cá nhân (Dùng Stat Card của bạn nhưng đổi Icon) -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
             <div class="stat-card">
@@ -63,11 +64,10 @@
         </div>
     </div>
 
-    <!-- Lịch tập cá nhân (Thay vì bảng lớp học của Admin) -->
-    <div class="card-box">
+    <div class="card-box mb-4">
         <div class="card-box-header d-flex justify-content-between align-items-center">
             <span><i class="bi bi-calendar-check"></i> Lịch tập của tôi trong tuần</span>
-            <a href="/member/my-history" class="text-red" style="font-size: 0.85rem; text-decoration: none;">Xem lịch sử</a>
+            <a href="/member/history" class="text-red" style="font-size: 0.85rem; text-decoration: none;">Xem lịch sử</a>
         </div>
         <div class="table-responsive" style="padding: 15px;">
             <table class="admin-table">
@@ -80,7 +80,6 @@
                 </tr>
                 </thead>
                 <tbody>
-                <!-- Giả sử bạn sẽ truyền danh sách lớp đã đăng ký vào biến 'myClasses' -->
                 <tr th:each="c : ${myClasses}">
                     <td th:text="${c.className}" style="font-weight: 500;"></td>
                     <td th:text="${c.trainerName}"></td>
@@ -89,6 +88,38 @@
                 </tr>
                 <tr th:if="${myClasses == null or myClasses.isEmpty()}">
                     <td colspan="4" class="text-center py-4 text-muted">Bạn chưa đăng ký lớp học nào tuần này.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card-box">
+        <div class="card-box-header">
+            <i class="bi bi-clock-history"></i> Trạng thái nạp buổi tập gần đây
+        </div>
+        <div class="table-responsive" style="padding: 15px;">
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th>Ngày yêu cầu</th>
+                    <th>Số buổi</th>
+                    <th>Mã thanh toán</th>
+                    <th>Trạng thái</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${memberTransactions}">
+                    <td th:text="${#temporals.format(t.transactionDate, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td><span class="badge bg-success" th:text="${'+' + t.amount}"></span></td>
+                    <td th:text="${t.paymentCode}" class="fw-bold text-primary"></td>
+                    <td>
+                        <span th:if="${t.status != null and t.status.name() == 'PENDING'}" class="badge bg-warning text-dark">Chờ Admin duyệt</span>
+                        <span th:if="${t.status == null or t.status.name() == 'SUCCESS'}" class="badge bg-success">Thành công</span>
+                    </td>
+                </tr>
+                <tr th:if="${memberTransactions == null or memberTransactions.isEmpty()}">
+                    <td colspan="4" class="text-center py-3 text-muted small">Bạn chưa có yêu cầu nạp tiền nào.</td>
                 </tr>
                 </tbody>
             </table>

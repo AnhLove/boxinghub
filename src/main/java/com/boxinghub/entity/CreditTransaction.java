@@ -18,11 +18,19 @@ public class CreditTransaction {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
-    private Member member; // Nạp cho ai
+    private Member member;
 
-    private Integer amount; // Số buổi nạp (ví dụ: +10, +20)
+    private Integer amount; // Số buổi nạp
 
-    private LocalDateTime transactionDate; // Ngày nạp
+    private Double moneyAmount; // Số tiền tương ứng (VD: 100k/buổi)
 
-    private String note; // Ghi chú (ví dụ: "Nạp tại quầy", "Khuyến mãi")
+    private LocalDateTime transactionDate;
+
+    private String note;
+
+    @Enumerated(EnumType.STRING)
+    private TransactionStatus status; // PENDING, SUCCESS, CANCELLED
+
+    @Column(unique = true)
+    private String paymentCode; // Mã nội dung chuyển khoản duy nhất (VD: BH12345)
 }

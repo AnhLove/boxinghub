@@ -44,4 +44,14 @@ public class AdminTransactionController {
 
         return "redirect:/admin/transactions";
     }
+    @PostMapping("/approve/{id}")
+    public String approve(@PathVariable Long id, org.springframework.web.servlet.mvc.support.RedirectAttributes ra) {
+        try {
+            creditService.approveTransaction(id);
+            ra.addFlashAttribute("success", "Phê duyệt nạp buổi thành công!");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Lỗi: " + e.getMessage());
+        }
+        return "redirect:/admin/transactions";
+    }
 }

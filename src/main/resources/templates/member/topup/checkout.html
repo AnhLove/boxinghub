@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}" lang="vi">
+<head><title>Thanh toán Momo - BoxingHub</title></head>
+<body>
+<div layout:fragment="content" th:with="activePage='topup', pageTitle='Thanh toán'">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card-box p-4 text-center">
+                <h2 class="mb-4">Quét mã để nạp buổi</h2>
+
+                <div class="bg-light p-3 rounded mb-4 d-inline-block">
+                    <img th:src="@{'https://img.vietqr.io/image/970422-0116585296666-compact2.jpg?amount=' + ${transaction.moneyAmount} + '&addInfo=' + ${transaction.paymentCode} + '&accountName=TRAN%20VAN%20TUAN%20ANH'}"
+                         alt="Momo QR Code" style="max-width: 250px;" class="img-fluid shadow-sm">
+                </div>
+
+                <div class="text-start mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Số buổi nạp:</span>
+                        <strong class="text-red" th:text="${transaction.amount} + ' Buổi'"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Số tiền cần chuyển:</span>
+                        <strong th:text="${#numbers.formatDecimal(transaction.moneyAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 p-2 bg-yellow-light rounded">
+                        <span>Nội dung bắt buộc:</span>
+                        <strong class="text-primary" th:text="${transaction.paymentCode}"></strong>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning text-start" style="font-size: 0.85rem;">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <strong>Lưu ý:</strong> Vui lòng giữ đúng nội dung chuyển khoản để hệ thống xác nhận tự động hoặc Admin phê duyệt nhanh nhất.
+                </div>
+
+                <a href="/member/dashboard" class="btn btn-outline-secondary w-100">Quay lại Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

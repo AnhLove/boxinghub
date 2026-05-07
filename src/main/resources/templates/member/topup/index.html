@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}" lang="vi">
+<head><title>Nạp buổi tập - BoxingHub</title></head>
+<body>
+<div layout:fragment="content" th:with="activePage='topup', pageTitle='Nạp buổi tập'">
+    <div class="page-header">
+        <h1 class="page-title">Nạp thêm buổi tập</h1>
+        <p class="page-subtitle">Chọn gói phù hợp để tiếp tục hành trình tập luyện của bạn</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-4">
+            <div class="card-box text-center p-4 h-100 border-hover">
+                <h3 class="mb-3">Gói Test 1k</h3>
+                <div class="display-4 text-red mb-2">1</div>
+                <p class="text-muted">Buổi tập (Test)</p>
+                <hr>
+                <h4 class="mb-4">2.000đ</h4>
+                <form th:action="@{/member/topup/confirm}" method="post">
+                    <input type="hidden" name="sessions" value="1">
+                    <button type="submit" class="btn-red w-100">Chọn gói 2k</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card-box text-center p-4 h-100 border-hover shadow-sm" style="border: 1px solid #dc3545;">
+                <h3 class="mb-3">Gói Test 10k</h3>
+                <div class="display-4 text-red mb-2">10</div>
+                <p class="text-muted">Buổi tập (Test)</p>
+                <hr>
+                <h4 class="mb-4">10.000đ</h4>
+                <form th:action="@{/member/topup/confirm}" method="post">
+                    <input type="hidden" name="sessions" value="10">
+                    <button type="submit" class="btn-red w-100">Chọn gói 10k</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
