@@ -67,8 +67,9 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Member> getMemberByEmail(String email) {
-        return memberRepository.findByUserEmail(email);
+        return memberRepository.findByEmailWithDetails(email);
     }
 
     @Override
@@ -90,31 +91,6 @@ public class MemberServiceImpl implements MemberService {
     }
 
     // --- LOGIC QUAN TRỌNG: ĐĂNG KÝ LỚP ---
-//    @Override
-//    @Transactional
-//    public void enrollInClass(Long memberId, Long classId) {
-//        Member member = memberRepository.findById(memberId).orElseThrow();
-//        GroupClass groupClass = groupClassRepository.findById(classId).orElseThrow();
-//
-//        if (member.getEnrolledClasses().contains(groupClass)) {
-//            throw new RuntimeException("Bạn đã đăng ký lớp này rồi!");
-//        }
-//
-//        // Kiểm tra sức chứa dựa trên danh sách thực tế (nếu cần) hoặc biến đếm
-//        if (groupClass.getCurrentEnrolled() >= groupClass.getCapacity()) {
-//            throw new RuntimeException("Lớp học đã đầy chỗ!");
-//        }
-//
-//        // Thực hiện đăng ký
-//        member.getEnrolledClasses().add(groupClass);
-//        member.setRemainingSessions(member.getRemainingSessions() - 1);
-//
-//        // Tăng sĩ số và lưu
-//        groupClass.setCurrentEnrolled(groupClass.getCurrentEnrolled() + 1);
-//
-//        memberRepository.save(member);
-//        groupClassRepository.save(groupClass);
-//    }
     @Override
     @Transactional
     public void enrollInClass(Long memberId, Long classId) {
@@ -180,6 +156,29 @@ public class MemberServiceImpl implements MemberService {
 
         int current = (member.getRemainingSessions() != null) ? member.getRemainingSessions() : 0;
         member.setRemainingSessions(current + amount);
+
+        memberRepository.save(member);
+    }
+
+    @Override
+    @Transactional
+    public void updateProfile(String email, Member data) {
+        // Lấy member hiện tại từ DB để giữ lại các thông tin như danh sách lớp, id, v.v.
+        Member member = memberRepository.findByUserEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy học viên"));
+
+        // Chỉ cập nhật các thông tin cá nhân cơ bản từ form
+        member.setFullName(data.getFullName());
+        member.setPhone(data.getPhone());
+        member.setGender(data.getGender());
+        member.setLevel(data.getLevel());
+        member.setHeight(data.getHeight());
+        member.setWeight(data.getWeight());
+
+        // Cập nhật tên hiển thị bên bảng User để layout đồng bộ
+        if (member.getUser() != null) {
+            member.getUser().setFullName(data.getFullName());
+        }
 
         memberRepository.save(member);
     }

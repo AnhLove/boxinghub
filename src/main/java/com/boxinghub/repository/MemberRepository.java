@@ -3,6 +3,8 @@ package com.boxinghub.repository;
 import com.boxinghub.entity.Member;
 import com.boxinghub.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
@@ -11,6 +13,11 @@ import java.util.Optional;
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
     // 1. Tìm hồ sơ member dựa trên đối tượng User (Dùng khi đã có User từ SecurityContext)
+    @Query("SELECT m FROM Member m " +
+            "LEFT JOIN FETCH m.user " +
+            "LEFT JOIN FETCH m.enrolledClasses " +
+            "WHERE m.user.email = :email")
+    Optional<Member> findByEmailWithDetails(@Param("email") String email);
     Optional<Member> findByUser(User user);
 
     // 2. Tìm hồ sơ member dựa trên email của User (Spring Data JPA tự động Join sang bảng User)

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}"
+      lang="vi">
+<head><title>Hồ sơ cá nhân - BoxingHub</title></head>
+<body>
+<div layout:fragment="content" th:with="activePage='profile', pageTitle='Hồ sơ cá nhân'">
+
+  <div th:if="${success}" class="alert alert-success shadow-sm border-0 mb-4">
+    <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${success}"></span>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-4">
+      <div class="card-box text-center p-4 mb-4">
+        <div class="mb-3">
+          <img th:src="@{/assets/images/users/user-default.png}" class="rounded-circle img-thumbnail" style="width: 120px;">
+        </div>
+        <h4 th:text="${member.fullName}">Nguyễn Văn A</h4>
+        <p class="text-muted" th:text="${member.user.email}">user@gmail.com</p>
+        <div class="badge bg-soft-danger text-danger p-2 px-3 mb-3">
+          Cấp độ: <span th:text="${member.level != null ? member.level : 'Newbie'}"></span>
+        </div>
+        <hr>
+        <div class="row text-center">
+          <div class="col-6 border-end">
+            <h5 th:text="${member.remainingSessions}">10</h5>
+            <small class="text-muted">Buổi còn lại</small>
+          </div>
+          <div class="col-6">
+            <h5 th:text="${member.enrolledClasses.size()}">3</h5>
+            <small class="text-muted">Lớp đã tham gia</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card-box p-4">
+        <h4 class="header-title mb-4"><i class="bi bi-person-gear me-2 text-red"></i>Chỉnh sửa hồ sơ</h4>
+
+        <form th:action="@{/member/profile/update}" method="post" th:object="${member}">
+          <div class="row">
+            <div class="col-md-12 mb-3">
+              <label class="form-label font-weight-bold">Họ và tên</label>
+              <input type="text" th:field="*{fullName}" class="form-control" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label font-weight-bold">Số điện thoại</label>
+              <input type="text" th:field="*{phone}" class="form-control">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label font-weight-bold">Giới tính</label>
+              <select th:field="*{gender}" class="form-select">
+                <option value="MALE">Nam</option>
+                <option value="FEMALE">Nữ</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Cấp độ</label>
+              <select class="form-select" th:field="*{level}">
+                <option value="">-- Chọn cấp độ --</option>
+                <option th:value="BEGINNER">Beginner</option>
+                <option th:value="INTERMEDIATE">Intermediate</option>
+                <option th:value="ADVANCED">Advanced</option>
+              </select>
+            </div>
+
+            <h5 class="mt-4 mb-3 text-red"><i class="bi bi-activity me-2"></i>Chỉ số cơ thể</h5>
+            <div class="col-md-6 mb-3">
+              <label class="form-label font-weight-bold">Chiều cao (cm)</label>
+              <div class="input-group">
+                <input type="number" step="0.1" th:field="*{height}" class="form-control">
+                <span class="input-group-text">cm</span>
+              </div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label font-weight-bold">Cân nặng (kg)</label>
+              <div class="input-group">
+                <input type="number" step="0.1" th:field="*{weight}" class="form-control">
+                <span class="input-group-text">kg</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-end mt-4">
+            <button type="submit" class="btn btn-red px-5 py-2 shadow">
+              <i class="bi bi-save me-2"></i> Lưu thay đổi
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

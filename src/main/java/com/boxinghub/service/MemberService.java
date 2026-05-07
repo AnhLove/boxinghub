@@ -29,4 +29,5 @@ public interface MemberService {
     void enrollInClass(Long memberId, Long classId);
     void cancelEnrollment(Long memberId, Long classId);
     void addSessions(Long memberId, int amount);
+    void updateProfile(String email, Member profileData);
 }

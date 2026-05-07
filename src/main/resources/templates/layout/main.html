@@ -81,6 +81,11 @@
         <!-- 3. MENU CHO MEMBER (Học viên) -->
         <th:block sec:authorize="hasRole('MEMBER')">
             <div class="menu-label">Cá nhân</div>
+            <a th:href="@{/member/profile}"
+               class="nav-item-link"
+               th:classappend="${activePage == 'profile' ? 'active' : ''}">
+                <i class="bi bi-person-circle"></i> <span>Hồ sơ cá nhân</span>
+            </a>
             <a href="/member/schedule" class="nav-item-link" th:classappend="${activePage == 'my-schedule'} ? 'active' : ''">
                 <i class="bi bi-calendar-check"></i> <span>Đăng ký tập</span>
             </a>

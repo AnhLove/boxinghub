@@ -75,6 +75,8 @@
                     <th>Email</th>
                     <th>Số điện thoại</th>
                     <th>Giới tính</th>
+                    <th>Chiều cao</th>
+                    <th>Cân nặng</th>
                     <th>Số buổi tập</th>
                     <th>Cấp độ</th>
                     <th>Hành động</th>
@@ -96,6 +98,14 @@
                         <span th:if="${member.gender != null}"
                               th:text="${member.gender.name() == 'MALE' ? 'Nam' : 'Nữ'}"></span>
                         <span th:if="${member.gender == null}" class="text-muted">—</span>
+                    </td>
+
+                    <td>
+                        <span th:text="${member.height != null ? member.height + ' cm' : '—'}"></span>
+                    </td>
+
+                    <td>
+                        <span th:text="${member.weight != null ? member.weight + ' kg' : '—'}"></span>
                     </td>
 
                     <!-- Số buổi tập -->
