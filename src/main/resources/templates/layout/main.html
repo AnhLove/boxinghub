@@ -76,6 +76,15 @@
             <a href="/admin/transactions" class="nav-item-link" th:classappend="${activePage == 'transactions'} ? 'active' : ''">
                 <i class="bi bi-currency-exchange"></i> <span>Quản lý nạp buổi</span>
             </a>
+            <a href="/admin/support" class="nav-item-link" th:classappend="${activePage == 'admin-support'} ? 'active' : ''">
+                <i class="bi bi-headset"></i> <span>Quản lý báo lỗi</span>
+            </a>
+            <div class="menu-label">Hệ thống</div>
+            <a href="/admin/group-classes/schedule"
+               class="nav-item-link"
+               th:classappend="${activePage == 'schedule'} ? 'active' : ''">
+                <i class="bi bi-calendar3"></i> <span>Lịch tổng quát</span>
+            </a>
         </th:block>
 
         <!-- 3. MENU CHO MEMBER (Học viên) -->
@@ -95,6 +104,9 @@
             <a href="/member/history" class="nav-item-link" th:classappend="${activePage == 'history'} ? 'active' : ''">
                 <i class="bi bi-clock-history"></i> <span>Lịch sử tập</span>
             </a>
+            <a href="/member/support" class="nav-item-link" th:classappend="${activePage == 'support'} ? 'active' : ''">
+                <i class="bi bi-chat-dots"></i> <span>Hỗ trợ & Báo lỗi</span>
+            </a>
         </th:block>
 
         <!-- 4. MENU CHO TRAINER (HLV - Nhánh riêng bạn yêu cầu) -->
@@ -107,13 +119,6 @@
                 <i class="bi bi-currency-dollar"></i> <span>Lương & Thưởng</span>
             </a>
         </th:block>
-
-        <div class="menu-label">Hệ thống</div>
-        <a href="/admin/group-classes/schedule"
-           class="nav-item-link"
-           th:classappend="${activePage == 'schedule'} ? 'active' : ''">
-            <i class="bi bi-calendar3"></i> <span>Lịch tổng quát</span>
-        </a>
     </div>
 </aside>
 
