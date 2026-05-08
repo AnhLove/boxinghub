@@ -62,8 +62,7 @@ public class CreditServiceImpl implements CreditService {
         // Tạo mã thanh toán duy nhất (Ví dụ: BH123456)
         String paymentCode = "BH" + (System.currentTimeMillis() % 1000000);
 
-        // THAY ĐỔI ĐỂ TEST: 1 buổi = 1.000đ (Sửa lại 100000.0 khi chạy thực tế)
-        double pricePerSession = 2000.0;
+        double pricePerSession = 100000.0;
         double totalMoney = sessions * pricePerSession;
 
         CreditTransaction transaction = CreditTransaction.builder()

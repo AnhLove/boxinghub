@@ -3,6 +3,8 @@ package com.boxinghub.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "trainers")
 @Getter
@@ -33,4 +35,16 @@ public class Trainer extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private TrainerStatus status; // ACTIVE, INACTIVE
+
+    @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL)
+    private List<Review> reviews = new java.util.ArrayList<>();
+
+    // Hàm tiện ích để tính điểm trung bình (optional)
+    public Double getAverageRating() {
+        if (reviews == null || reviews.isEmpty()) return 0.0;
+        return reviews.stream()
+                .mapToInt(Review::getRating)
+                .average()
+                .orElse(0.0);
+    }
 }

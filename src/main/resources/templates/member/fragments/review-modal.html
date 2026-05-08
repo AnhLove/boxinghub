@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="reviewModal" class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold">Đánh giá HLV: <span id="modalTrainerName" class="text-danger"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form th:action="@{/member/review/submit}" method="post">
+                <div class="modal-body text-center py-4">
+                    <input type="hidden" name="trainerId" id="modalTrainerId">
+
+                    <label class="form-label fw-bold mb-3">Mức độ hài lòng của bạn?</label>
+                    <div class="star-rating mb-3" style="font-size: 2.5rem; color: #ffc107; cursor: pointer;">
+                        <i class="bi bi-star-fill rating-star" data-value="1"></i>
+                        <i class="bi bi-star-fill rating-star" data-value="2"></i>
+                        <i class="bi bi-star-fill rating-star" data-value="3"></i>
+                        <i class="bi bi-star-fill rating-star" data-value="4"></i>
+                        <i class="bi bi-star-fill rating-star" data-value="5"></i>
+                    </div>
+                    <input type="hidden" name="rating" id="selectedRating" value="5">
+
+                    <div class="text-start mt-3">
+                        <label class="form-label small fw-bold">Nhận xét chi tiết (không bắt buộc)</label>
+                        <textarea name="comment" class="form-control" rows="3" placeholder="Chia sẻ cảm nhận về kỹ thuật, thái độ của HLV..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger px-4">Gửi đánh giá</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

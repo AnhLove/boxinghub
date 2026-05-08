@@ -1,7 +1,10 @@
 package com.boxinghub.controller.member;
 
+import com.boxinghub.entity.GroupClass;
 import com.boxinghub.entity.Member;
+import com.boxinghub.entity.Trainer;
 import com.boxinghub.service.MemberService;
+import com.boxinghub.service.ReviewService;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -12,6 +15,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.Principal;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/member")
@@ -20,6 +26,7 @@ public class MemberDashboardController {
 
     private final MemberService memberService;
     private final com.boxinghub.service.GroupClassService groupClassService;
+    private final ReviewService reviewService;
 
     @GetMapping("/dashboard")
     public String dashboard(Principal principal, Model model) {
@@ -54,25 +61,31 @@ public class MemberDashboardController {
     }
 
     @GetMapping("/schedule")
-    @Transactional(readOnly = true) // Thêm dòng này để nạp được dữ liệu Lazy Loading
+    @Transactional(readOnly = true)
     public String mySchedule(Principal principal, Model model) {
         String email = principal.getName();
-
-        // 1. Tìm member
         Member member = memberService.getMemberByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Member"));
 
-        // 2. Kích hoạt việc load danh sách lớp đã đăng ký (Lazy Loading)
         if (member.getEnrolledClasses() != null) {
             member.getEnrolledClasses().size();
         }
 
-        // 3. Lấy danh sách tất cả các lớp đang mở
         var list = groupClassService.findAllAvailableForMembers();
 
-        // 4. Đưa dữ liệu vào model
-        model.addAttribute("member", member); // Quan trọng: member này chứa list enrolledClasses
+        // 2. Tạo Map chứa điểm trung bình của từng Trainer trong danh sách lớp
+        Map<Long, Double> ratings = list.stream()
+                .map(GroupClass::getTrainer)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toMap(
+                        Trainer::getId,
+                        t -> reviewService.getAverageRating(t.getId())
+                ));
+
+        model.addAttribute("member", member);
         model.addAttribute("classes", list);
+        model.addAttribute("ratings", ratings); // 3. Truyền Map ratings sang HTML
         model.addAttribute("activePage", "schedule");
         model.addAttribute("pageTitle", "Đăng ký tập");
 
