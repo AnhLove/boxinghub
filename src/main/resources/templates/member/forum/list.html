@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}" lang="vi">
+<head>
+    <title>Diễn đàn BoxingHub</title>
+    <style>
+        .post-card { background: var(--bg-2); border-radius: 12px; border: 1px solid var(--border); transition: 0.3s; }
+        .post-card:hover { border-color: var(--danger); }
+        .author-avatar { width: 45px; height: 45px; border-radius: 50%; background: var(--bg-3); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--danger); border: 2px solid var(--border); }
+        .post-content { white-space: pre-wrap; color: var(--text); }
+        .action-btn { color: var(--text-muted); transition: 0.2s; cursor: pointer; }
+        .action-btn:hover { color: var(--danger); }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="page-header mb-4">
+        <h1 class="page-title">Cộng đồng Boxing</h1>
+        <p class="page-subtitle text-muted">Chia sẻ kỹ thuật, kinh nghiệm và kết nối cùng các võ sĩ khác.</p>
+    </div>
+
+    <div class="post-card p-4 mb-4 shadow-sm">
+        <form th:action="@{/member/forum/create}" method="post">
+            <div class="d-flex gap-3 mb-3">
+                <div class="author-avatar" th:text="${#strings.substring(session.userFullName ?: 'U', 0, 1)}">U</div>
+                <div class="flex-grow-1">
+                    <input type="text" name="title" class="form-control border-0 bg-light mb-2 fw-bold"
+                           placeholder="Tiêu đề bài viết..." required style="background: var(--bg-3) !important; color: var(--text);">
+                    <textarea name="content" class="form-control border-0 bg-light" rows="3"
+                              placeholder="Bạn đang nghĩ gì?" required style="background: var(--bg-3) !important; color: var(--text);"></textarea>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end border-top pt-3">
+                <button type="submit" class="btn btn-danger px-4 rounded-pill">
+                    <i class="bi bi-send-fill me-2"></i>Đăng bài
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12" th:each="p : ${posts}">
+            <div class="post-card p-4 mb-3 shadow-sm">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="author-avatar me-3" th:text="${#strings.substring(p.author.fullName, 0, 1)}">B</div>
+                    <div>
+                        <div class="fw-bold text-danger" th:text="${p.author.fullName}">Nguyễn Văn A</div>
+                        <small class="text-muted" th:text="${#temporals.format(p.createdAt, 'dd/MM/yyyy HH:mm')}"></small>
+                    </div>
+                    <div class="ms-auto dropdown">
+                        <i class="bi bi-three-dots-vertical action-btn" data-bs-toggle="dropdown"></i>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-person-plus me-2"></i>Kết bạn</a></li>
+                            <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-flag me-2"></i>Báo cáo</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h4 class="fw-bold mb-2" th:text="${p.title}">Làm sao để đấm thẳng đúng kỹ thuật?</h4>
+                <div class="post-content mb-3" th:text="${p.content}">
+                    Chia sẻ của mình về cách xoay hông khi ra đòn Jab...
+                </div>
+
+                <div class="d-flex border-top pt-3 gap-4">
+                    <div class="action-btn fw-semibold">
+                        <i class="bi bi-heart me-1"></i> <span th:text="${p.likes ?: 0}">0</span> Thích
+                    </div>
+                    <div class="action-btn fw-semibold">
+                        <i class="bi bi-chat-left-text me-1"></i> Bình luận
+                    </div>
+                    <div class="action-btn fw-semibold ms-auto">
+                        <i class="bi bi-share"></i> Chia sẻ
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center py-5" th:if="${#lists.isEmpty(posts)}">
+            <i class="bi bi-mailbox2 text-muted" style="font-size: 3rem;"></i>
+            <p class="text-muted mt-2">Chưa có bài viết nào. Hãy là người đầu tiên chia sẻ!</p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

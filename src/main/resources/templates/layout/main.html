@@ -107,6 +107,12 @@
             <a href="/member/support" class="nav-item-link" th:classappend="${activePage == 'support'} ? 'active' : ''">
                 <i class="bi bi-chat-dots"></i> <span>Hỗ trợ & Báo lỗi</span>
             </a>
+            <div class="menu-label">Cộng đồng</div>
+            <a href="/member/forum"
+               class="nav-item-link"
+               th:classappend="${activePage == 'forum'} ? 'active' : ''">
+                <i class="bi bi-person-video3"></i> <span>Diễn đàn</span>
+            </a>
         </th:block>
 
         <!-- 4. MENU CHO TRAINER (HLV - Nhánh riêng bạn yêu cầu) -->
