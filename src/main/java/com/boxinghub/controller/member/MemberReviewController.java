@@ -31,14 +31,8 @@ public class MemberReviewController {
         String email = principal.getName();
 
         try {
-            // 1. Lấy thông tin Member từ email đăng nhập
             Member member = memberService.getMemberByEmail(email)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ học viên"));
-
-            // 2. CHỖ NÀY ĐÃ SỬA: Không chặn hasMemberReviewedTrainer nữa
-            // để logic Service tự động xử lý việc CẬP NHẬT (Update) nếu đã tồn tại.
-
-            // 3. Gọi service để lưu đánh giá (Sẽ tự Update nếu đã có bản cũ)
             reviewService.submitReview(member.getId(), trainerId, rating, comment);
 
             ra.addFlashAttribute("success", "Đã ghi nhận đánh giá của bạn!");
@@ -46,8 +40,6 @@ public class MemberReviewController {
         } catch (Exception e) {
             ra.addFlashAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
         }
-
-        // Sau khi đánh giá xong, quay lại trang Lịch sử tập luyện
         return "redirect:/member/history";
     }
 }

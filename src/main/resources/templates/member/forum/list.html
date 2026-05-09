@@ -9,8 +9,10 @@
         .post-card:hover { border-color: var(--danger); }
         .author-avatar { width: 45px; height: 45px; border-radius: 50%; background: var(--bg-3); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--danger); border: 2px solid var(--border); }
         .post-content { white-space: pre-wrap; color: var(--text); }
-        .action-btn { color: var(--text-muted); transition: 0.2s; cursor: pointer; }
+        .action-btn { color: var(--text-muted); transition: 0.2s; cursor: pointer; text-decoration: none; font-size: 0.9rem; }
         .action-btn:hover { color: var(--danger); }
+        .media-container { background: #000; border-radius: 8px; overflow: hidden; max-height: 500px; display: flex; align-items: center; justify-content: center; }
+        .media-container img, .media-container video { max-width: 100%; max-height: 500px; object-fit: contain; }
     </style>
 </head>
 <body>
@@ -18,11 +20,11 @@
 <div layout:fragment="content">
     <div class="page-header mb-4">
         <h1 class="page-title">Cộng đồng Boxing</h1>
-        <p class="page-subtitle text-muted">Chia sẻ kỹ thuật, kinh nghiệm và kết nối cùng các võ sĩ khác.</p>
+        <p class="page-subtitle text-muted">Chia sẻ kỹ thuật và kết nối cùng các võ sĩ khác.</p>
     </div>
 
     <div class="post-card p-4 mb-4 shadow-sm">
-        <form th:action="@{/member/forum/create}" method="post">
+        <form th:action="@{/member/forum/create}" method="post" enctype="multipart/form-data" id="forumForm">
             <div class="d-flex gap-3 mb-3">
                 <div class="author-avatar" th:text="${#strings.substring(session.userFullName ?: 'U', 0, 1)}">U</div>
                 <div class="flex-grow-1">
@@ -30,6 +32,14 @@
                            placeholder="Tiêu đề bài viết..." required style="background: var(--bg-3) !important; color: var(--text);">
                     <textarea name="content" class="form-control border-0 bg-light" rows="3"
                               placeholder="Bạn đang nghĩ gì?" required style="background: var(--bg-3) !important; color: var(--text);"></textarea>
+
+                    <div class="mt-2 d-flex align-items-center gap-2">
+                        <label class="btn btn-sm btn-outline-secondary rounded-pill">
+                            <i class="bi bi-camera-reels me-1"></i> Ảnh/Video
+                            <input type="file" name="file" id="fileInput" hidden accept="image/*,video/*">
+                        </label>
+                        <small id="fileNameDisplay" class="text-muted"></small>
+                    </div>
                 </div>
             </div>
             <div class="d-flex justify-content-end border-top pt-3">
@@ -46,43 +56,35 @@
                 <div class="d-flex align-items-center mb-3">
                     <div class="author-avatar me-3" th:text="${#strings.substring(p.author.fullName, 0, 1)}">B</div>
                     <div>
-                        <div class="fw-bold text-danger" th:text="${p.author.fullName}">Nguyễn Văn A</div>
+                        <div class="fw-bold text-danger" th:text="${p.author.fullName}">Tên</div>
                         <small class="text-muted" th:text="${#temporals.format(p.createdAt, 'dd/MM/yyyy HH:mm')}"></small>
-                    </div>
-                    <div class="ms-auto dropdown">
-                        <i class="bi bi-three-dots-vertical action-btn" data-bs-toggle="dropdown"></i>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                            <li><a class="dropdown-item" href="#"><i class="bi bi-person-plus me-2"></i>Kết bạn</a></li>
-                            <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-flag me-2"></i>Báo cáo</a></li>
-                        </ul>
                     </div>
                 </div>
 
-                <h4 class="fw-bold mb-2" th:text="${p.title}">Làm sao để đấm thẳng đúng kỹ thuật?</h4>
-                <div class="post-content mb-3" th:text="${p.content}">
-                    Chia sẻ của mình về cách xoay hông khi ra đòn Jab...
+                <h4 class="fw-bold mb-2" th:text="${p.title}"></h4>
+                <div class="post-content mb-3" th:text="${p.content}"></div>
+
+                <div th:if="${p.mediaUrl != null}" class="media-container mb-3">
+                    <img th:if="${p.mediaType == 'IMAGE'}" th:src="${p.mediaUrl}" alt="Post image">
+                    <video th:if="${p.mediaType == 'VIDEO'}" controls>
+                        <source th:src="${p.mediaUrl}" type="video/mp4">
+                    </video>
                 </div>
 
                 <div class="d-flex border-top pt-3 gap-4">
-                    <div class="action-btn fw-semibold">
-                        <i class="bi bi-heart me-1"></i> <span th:text="${p.likes ?: 0}">0</span> Thích
-                    </div>
-                    <div class="action-btn fw-semibold">
+                    <span class="action-btn fw-semibold"><i class="bi bi-heart me-1"></i> <span th:text="${p.likes ?: 0}"></span> Thích</span>
+                    <a th:href="@{/member/forum/post/{id}(id=${p.id})}" class="action-btn fw-semibold">
                         <i class="bi bi-chat-left-text me-1"></i> Bình luận
-                    </div>
-                    <div class="action-btn fw-semibold ms-auto">
-                        <i class="bi bi-share"></i> Chia sẻ
-                    </div>
+                    </a>
                 </div>
             </div>
         </div>
-
-        <div class="text-center py-5" th:if="${#lists.isEmpty(posts)}">
-            <i class="bi bi-mailbox2 text-muted" style="font-size: 3rem;"></i>
-            <p class="text-muted mt-2">Chưa có bài viết nào. Hãy là người đầu tiên chia sẻ!</p>
-        </div>
     </div>
 </div>
+
+<th:block layout:fragment="script">
+    <script th:src="@{/js/forum.js}"></script>
+</th:block>
 
 </body>
 </html>

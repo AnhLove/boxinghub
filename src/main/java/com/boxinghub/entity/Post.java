@@ -23,4 +23,6 @@ public class Post extends BaseEntity {
     // Bạn có thể thêm lượt thích hoặc trạng thái ẩn/hiện
     private Integer likes = 0;
     private boolean isHidden = false;
+    private String mediaUrl;  // Lưu path: /uploads/posts/abc.jpg
+    private String mediaType; // Để phân biệt 'IMAGE' hoặc 'VIDEO' giúp hiển thị đúng thẻ <img> hoặc <video>
 }

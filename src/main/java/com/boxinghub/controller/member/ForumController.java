@@ -30,14 +30,15 @@ public class ForumController {
     @PostMapping("/create")
     public String createPost(@RequestParam String title,
                              @RequestParam String content,
+                             @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
                              @AuthenticationPrincipal UserDetails userDetails,
                              RedirectAttributes redirectAttributes) {
         try {
-            // Gọi Service xử lý để đảm bảo tính đóng gói
-            postService.createPost(title, content, userDetails.getUsername());
+            postService.createPost(title, content, userDetails.getUsername(), file);
             redirectAttributes.addFlashAttribute("success", "Đăng bài thành công!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra khi đăng bài.");
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
         }
         return "redirect:/member/forum";
     }

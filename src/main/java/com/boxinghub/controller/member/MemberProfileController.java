@@ -39,7 +39,6 @@ public class MemberProfileController {
                                 Principal principal,
                                 RedirectAttributes ra) {
         try {
-            // Bạn cần thêm hàm updateProfile này vào MemberService như tôi đã gợi ý ở trên
             memberService.updateProfile(principal.getName(), memberData);
             ra.addFlashAttribute("success", "Cập nhật thông tin cá nhân thành công!");
         } catch (Exception e) {

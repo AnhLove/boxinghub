@@ -26,7 +26,7 @@ public class MemberSupportController {
         Member member = memberService.getMemberByEmail(principal.getName()).orElseThrow();
         model.addAttribute("tickets", supportService.getMemberTickets(member.getId()));
         model.addAttribute("activePage", "support");
-        return "member/support"; // Bạn sẽ cần tạo file support.html
+        return "member/support";
     }
 
     @PostMapping("/send")
