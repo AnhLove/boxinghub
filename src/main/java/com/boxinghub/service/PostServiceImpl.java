@@ -45,9 +45,7 @@ public class PostServiceImpl implements PostService {
 
         if (file != null && !file.isEmpty()) {
             String projectRoot = System.getProperty("user.dir");
-
-            // Kiểm tra xem có phải đang đứng ở thư mục cha không
-            // Nếu trong thư mục hiện tại có thư mục con tên là "boxinghub", thì đi vào đó
+            
             File subFolder = new File(projectRoot, "boxinghub");
             if (subFolder.exists() && subFolder.isDirectory()) {
                 projectRoot = subFolder.getAbsolutePath();
