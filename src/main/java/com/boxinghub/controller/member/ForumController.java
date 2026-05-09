@@ -3,6 +3,7 @@ package com.boxinghub.controller.member;
 import com.boxinghub.entity.Post;
 import com.boxinghub.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -17,16 +18,15 @@ public class ForumController {
     @Autowired
     private PostService postService;
 
-    // Hiển thị danh sách bài viết
     @GetMapping
-    public String showForum(Model model) {
-        model.addAttribute("posts", postService.getAllPosts());
+    public String showForum(Model model, @AuthenticationPrincipal UserDetails userDetails) {
+        String currentEmail = (userDetails != null) ? userDetails.getUsername() : null;
+        model.addAttribute("posts", postService.getAllPosts(currentEmail));
         model.addAttribute("activePage", "forum");
         model.addAttribute("pageTitle", "Diễn đàn BoxingHub");
         return "member/forum/list";
     }
 
-    // Xử lý đăng bài mới
     @PostMapping("/create")
     public String createPost(@RequestParam String title,
                              @RequestParam String content,
@@ -43,7 +43,6 @@ public class ForumController {
         return "redirect:/member/forum";
     }
 
-    // Xử lý xóa bài viết
     @PostMapping("/delete/{id}")
     public String deletePost(@PathVariable Long id,
                              @AuthenticationPrincipal UserDetails userDetails,
@@ -57,10 +56,34 @@ public class ForumController {
         return "redirect:/member/forum";
     }
 
-    // Xử lý Like bài viết
     @PostMapping("/like/{id}")
     @ResponseBody
-    public void likePost(@PathVariable Long id) {
-        postService.toggleLike(id);
+    public void likePost(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        postService.toggleLike(id, userDetails.getUsername());
+    }
+
+    @PostMapping("/comment/{id}")
+    @ResponseBody
+    public ResponseEntity<?> addComment(@PathVariable("id") Long postId,
+                                        @RequestParam("content") String content,
+                                        @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            postService.addComment(postId, content, userDetails.getUsername());
+
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/post/{id}")
+    public String showPostDetail(@PathVariable Long id, Model model, @AuthenticationPrincipal UserDetails userDetails) {
+        String currentEmail = (userDetails != null) ? userDetails.getUsername() : null;
+        Post post = postService.getPostById(id);
+
+        model.addAttribute("post", post);
+        model.addAttribute("pageTitle", "Chi tiết bài viết");
+        model.addAttribute("activePage", "forum");
+        return "member/forum/detail";
     }
 }

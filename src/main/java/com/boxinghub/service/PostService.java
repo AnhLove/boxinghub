@@ -6,8 +6,15 @@ import java.io.IOException;
 import java.util.List;
 
 public interface PostService {
-    List<Post> getAllPosts();
+    List<Post> getAllPosts(String currentUserEmail);
+
+    Post getPostById(Long id);
+
     Post createPost(String title, String content, String userEmail, MultipartFile file) throws IOException;
+
     void deletePost(Long id, String userEmail);
-    void toggleLike(Long postId);
+
+    void toggleLike(Long postId, String userEmail);
+
+    void addComment(Long postId, String content, String userEmail);
 }

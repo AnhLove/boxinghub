@@ -16,6 +16,16 @@
         .media-container img, .media-container video { max-width: 100%; max-height: 500px; object-fit: contain; }
         .btn-delete-post { position: absolute; top: 1.5rem; right: 1.5rem; color: var(--text-muted); opacity: 0.5; transition: 0.3s; }
         .btn-delete-post:hover { color: var(--danger); opacity: 1; }
+
+        /* Cải thiện giao diện comment */
+        .comment-bubble { background: var(--bg-3) !important; border-radius: 15px; padding: 8px 12px; }
+        .comment-text { color: var(--text) !important; font-size: 0.875rem; }
+        .comment-input-group { background: var(--bg-3); border-radius: 25px; overflow: hidden; border: 1px solid var(--border); }
+        .comment-input-group input { background: transparent !important; color: var(--text) !important; border: none !important; box-shadow: none !important; }
+
+        /* Hiệu ứng hiện comment mới */
+        .new-comment-anim { animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -57,7 +67,6 @@
     <div class="row justify-content-center">
         <div class="col-12" th:each="p : ${posts}">
             <div class="post-card p-4 mb-3 shadow-sm">
-
                 <div th:if="${p.author.user.email == #authentication.name}" class="btn-delete-post">
                     <form th:action="@{/member/forum/delete/{id}(id=${p.id})}" method="post"
                           onsubmit="return confirm('Bạn có chắc muốn xóa bài viết này không?')">
@@ -75,7 +84,7 @@
                     </div>
                 </div>
 
-                <h4 class="fw-bold mb-2" th:text="${p.title}"></h4>
+                <h4 class="fw-bold mb-2" th:text="${p.title}" style="color: var(--text);"></h4>
                 <div class="post-content mb-3" th:text="${p.content}"></div>
 
                 <div th:if="${p.mediaUrl != null}" class="media-container mb-3">
@@ -85,14 +94,52 @@
                     </video>
                 </div>
 
-                <div class="d-flex border-top pt-3 gap-4">
-                    <button class="action-btn fw-semibold" th:onclick="'handleLike(' + ${p.id} + ')'">
-                        <i class="bi bi-heart me-1" th:id="'like-icon-' + ${p.id}"></i>
+                <div class="d-flex border-top pt-3 gap-4 align-items-center">
+                    <button class="action-btn fw-semibold" th:onclick="'handleLike(' + ${p.id} + ')'" th:id="'btn-like-' + ${p.id}">
+                        <i th:id="'like-icon-' + ${p.id}"
+                           th:class="${p.likedByCurrentUser ? 'bi bi-heart-fill text-danger' : 'bi bi-heart'} + ' me-1'">
+                        </i>
                         <span th:id="'like-count-' + ${p.id}" th:text="${p.likes ?: 0}">0</span> Thích
                     </button>
-                    <a th:href="@{/member/forum/post/{id}(id=${p.id})}" class="action-btn fw-semibold">
-                        <i class="bi bi-chat-left-text me-1"></i> Bình luận
+
+                    <button class="action-btn fw-semibold" type="button"
+                            data-bs-toggle="collapse" th:data-bs-target="'#commentSection-' + ${p.id}">
+                        <i class="bi bi-chat-left-text me-1"></i>
+                        <span th:id="'comment-count-' + ${p.id}" th:text="${#lists.size(p.comments)}">0</span> Bình luận
+                    </button>
+
+                    <a th:href="@{/member/forum/post/{id}(id=${p.id})}" class="action-btn fw-semibold ms-auto">
+                        Chi tiết <i class="bi bi-arrow-right"></i>
                     </a>
+                </div>
+
+                <div class="collapse mt-3" th:id="'commentSection-' + ${p.id}">
+                    <div class="border-top pt-3">
+                        <div th:id="'comment-list-' + ${p.id}">
+                            <div th:each="c, iter : ${p.comments}" th:if="${iter.index < 3}" class="d-flex gap-2 mb-2 align-items-start">
+                                <div class="author-avatar" style="width: 32px; height: 32px; font-size: 0.75rem; flex-shrink: 0;"
+                                     th:text="${#strings.substring(c.author.fullName, 0, 1)}"></div>
+                                <div class="comment-bubble flex-grow-1 shadow-sm">
+                                    <div class="fw-bold small text-danger" th:text="${c.author.fullName}"></div>
+                                    <div class="comment-text" th:text="${c.content}"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form class="mt-2 ajax-comment-form" th:data-post-id="${p.id}">
+                            <div class="comment-input-group d-flex align-items-center">
+                                <input type="text" name="content" class="form-control px-3 comment-input"
+                                       placeholder="Viết bình luận..." required>
+                                <button class="btn btn-danger btn-sm me-1 px-3 rounded-pill" type="submit">
+                                    <i class="bi bi-send"></i>
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="text-center mt-2" th:if="${#lists.size(p.comments) > 3}">
+                            <a th:href="@{/member/forum/post/{id}(id=${p.id})}" class="small text-muted text-decoration-none">Xem tất cả bình luận...</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

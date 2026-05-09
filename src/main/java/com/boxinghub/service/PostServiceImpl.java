@@ -1,8 +1,12 @@
 package com.boxinghub.service;
 
+import com.boxinghub.entity.Comment;
 import com.boxinghub.entity.Member;
 import com.boxinghub.entity.Post;
+import com.boxinghub.entity.PostLike;
+import com.boxinghub.repository.CommentRepository;
 import com.boxinghub.repository.MemberRepository;
+import com.boxinghub.repository.PostLikeRepository;
 import com.boxinghub.repository.PostRepository;
 import com.boxinghub.utils.FileUploadUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -25,9 +30,29 @@ public class PostServiceImpl implements PostService {
     @Autowired
     private MemberRepository memberRepository;
 
+    @Autowired
+    private CommentRepository commentRepository;
+
+    @Autowired
+    private PostLikeRepository postLikeRepository;
+
     @Override
-    public List<Post> getAllPosts() {
-        return postRepository.findAllByOrderByCreatedAtDesc();
+    public List<Post> getAllPosts(String currentUserEmail) {
+        List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
+
+        // Nếu người dùng đã đăng nhập, kiểm tra trạng thái like cho từng bài
+        if (currentUserEmail != null) {
+            Optional<Member> memberOpt = memberRepository.findByUserEmail(currentUserEmail);
+            if (memberOpt.isPresent()) {
+                Member member = memberOpt.get();
+                posts.forEach(post -> {
+                    // Kiểm tra sự tồn tại trong bảng PostLike
+                    boolean isLiked = postLikeRepository.findByPostAndMember(post, member).isPresent();
+                    post.setLikedByCurrentUser(isLiked);
+                });
+            }
+        }
+        return posts;
     }
 
     @Override
@@ -79,11 +104,52 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void toggleLike(Long postId) {
+    @Transactional
+    public void toggleLike(Long postId, String userEmail) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
+        Member member = memberRepository.findByUserEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Member not found"));
 
-        post.setLikes((post.getLikes() == null ? 0 : post.getLikes()) + 1);
-        postRepository.save(post);
+        Optional<PostLike> existingLike = postLikeRepository.findByPostAndMember(post, member);
+
+        if (existingLike.isPresent()) {
+            postLikeRepository.delete(existingLike.get());
+            post.setLikes(Math.max(0, (post.getLikes() == null ? 0 : post.getLikes()) - 1));
+        } else {
+            PostLike newLike = new PostLike();
+            newLike.setPost(post);
+            newLike.setMember(member);
+            postLikeRepository.save(newLike);
+            post.setLikes((post.getLikes() == null ? 0 : post.getLikes()) + 1);
+        }
+
+        postRepository.saveAndFlush(post);
+    }
+
+    @Override
+    @Transactional
+    public void addComment(Long postId, String content, String userEmail) {
+        // 1. Tìm bài viết
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
+
+        // 2. Tìm Member thông qua Email của User đang đăng nhập
+        Member member = memberRepository.findByUserEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin thành viên"));
+
+        // 3. Tạo và lưu bình luận
+        Comment comment = new Comment();
+        comment.setContent(content);
+        comment.setPost(post);
+        comment.setAuthor(member);
+
+        commentRepository.save(comment);
+    }
+
+    @Override
+    public Post getPostById(Long id) {
+        return postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết với ID: " + id));
     }
 }
