@@ -45,7 +45,7 @@ public class PostServiceImpl implements PostService {
 
         if (file != null && !file.isEmpty()) {
             String projectRoot = System.getProperty("user.dir");
-            
+
             File subFolder = new File(projectRoot, "boxinghub");
             if (subFolder.exists() && subFolder.isDirectory()) {
                 projectRoot = subFolder.getAbsolutePath();
@@ -55,26 +55,35 @@ public class PostServiceImpl implements PostService {
                     File.separator + "resources" + File.separator + "static" +
                     File.separator + "uploads" + File.separator + "posts";
 
-            System.out.println("--- ĐƯỜNG DẪN CUỐI CÙNG: " + uploadDir);
-
             String fileName = FileUploadUtil.saveFile(uploadDir, file);
             post.setMediaUrl("/uploads/posts/" + fileName);
 
-            post.setMediaUrl("/uploads/posts/" + fileName);
-
             String contentType = file.getContentType();
-            if (contentType != null && contentType.startsWith("video")) {
-                post.setMediaType("VIDEO");
-            } else {
-                post.setMediaType("IMAGE");
-            }
+            post.setMediaType(contentType != null && contentType.startsWith("video") ? "VIDEO" : "IMAGE");
         }
 
         return postRepository.save(post);
     }
 
     @Override
-    public void deletePost(Long id) {
-        postRepository.deleteById(id);
+    public void deletePost(Long id, String userEmail) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        // SECURITY CHECK: Only author can delete
+        if (!post.getAuthor().getUser().getEmail().equals(userEmail)) {
+            throw new RuntimeException("You are not authorized to delete this post!");
+        }
+
+        postRepository.delete(post);
+    }
+
+    @Override
+    public void toggleLike(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        post.setLikes((post.getLikes() == null ? 0 : post.getLikes()) + 1);
+        postRepository.save(post);
     }
 }

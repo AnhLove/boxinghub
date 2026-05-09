@@ -42,4 +42,25 @@ public class ForumController {
         }
         return "redirect:/member/forum";
     }
+
+    // Xử lý xóa bài viết
+    @PostMapping("/delete/{id}")
+    public String deletePost(@PathVariable Long id,
+                             @AuthenticationPrincipal UserDetails userDetails,
+                             RedirectAttributes redirectAttributes) {
+        try {
+            postService.deletePost(id, userDetails.getUsername());
+            redirectAttributes.addFlashAttribute("success", "Xóa bài viết thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
+        }
+        return "redirect:/member/forum";
+    }
+
+    // Xử lý Like bài viết
+    @PostMapping("/like/{id}")
+    @ResponseBody
+    public void likePost(@PathVariable Long id) {
+        postService.toggleLike(id);
+    }
 }
