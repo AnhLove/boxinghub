@@ -8,9 +8,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetailsService;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Autowired
+    private UserDetailsService userDetailsService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -24,20 +30,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/vendor/**").permitAll()
                         .requestMatchers("/", "/login", "/register", "/error").permitAll()
-
-                        // Phân quyền rạch ròi
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/member/**").hasRole("MEMBER")
                         .requestMatchers("/trainer/**").hasRole("TRAINER")
-
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        // Xóa cái defaultSuccessUrl cũ đi
                         .successHandler((request, response, authentication) -> {
-                            // Logic điều hướng dựa trên Role
                             var authorities = authentication.getAuthorities();
                             for (var auth : authorities) {
                                 if (auth.getAuthority().equals("ROLE_ADMIN")) {
@@ -52,10 +53,18 @@ public class SecurityConfig {
                         })
                         .permitAll()
                 )
+
+                .rememberMe(remember -> remember
+                        .key("boxinghub_secret_key")
+                        .tokenValiditySeconds(86400 * 7)
+                        .userDetailsService(userDetailsService)
+                        .rememberMeParameter("remember-me")
+                )
+                // -------------------------
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
-                        .deleteCookies("JSESSIONID")
+                        .deleteCookies("JSESSIONID", "remember-me")
                         .permitAll()
                 );
 
