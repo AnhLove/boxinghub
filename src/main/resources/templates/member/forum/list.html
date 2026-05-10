@@ -93,7 +93,12 @@
 
                 <div class="d-flex align-items-center mb-3">
                     <img th:src="${p.author.avatarUrl != null ? p.author.avatarUrl : '/assets/images/users/user-default.png'}"
-                         class="author-avatar me-3" alt="Author Avatar"
+                         class="author-avatar me-3 chat-trigger"
+                         style="cursor: pointer;"
+                         th:data-email="${p.author.user.email}"
+                         th:data-name="${p.author.fullName}"
+                         th:data-avatar="${p.author.avatarUrl}"
+                         alt="Author Avatar"
                          onerror="this.src='/assets/images/users/user-default.png'">
                     <div>
                         <div class="fw-bold text-danger" th:text="${p.author.fullName}">Tên</div>
@@ -165,9 +170,41 @@
             </div>
         </div>
     </div>
+    <div id="mini-chat-box" class="d-none shadow-lg border"
+         style="position: fixed; bottom: 20px; right: 20px; width: 320px; height: 400px;
+            background: var(--bg-2); border-radius: 12px; z-index: 1050; display: flex; flex-direction: column;">
+
+        <div class="p-3 d-flex align-items-center justify-content-between border-bottom bg-danger text-white"
+             style="border-radius: 12px 12px 0 0;">
+            <div class="d-flex align-items-center gap-2">
+                <img id="chat-target-avatar" src="" class="rounded-circle" style="width: 30px; height: 30px; object-fit: cover; border: 1px solid white;">
+                <span id="chat-target-name" class="fw-bold small">Tên người nhận</span>
+            </div>
+            <button id="btn-close-chat" class="btn-close btn-close-white shadow-none" style="font-size: 0.7rem;"></button>
+        </div>
+
+        <div id="chat-content" class="flex-grow-1 p-3 overflow-auto d-flex flex-column gap-2" style="background: var(--bg-1);">
+        </div>
+
+        <div class="p-2 border-top bg-light">
+            <div class="input-group input-group-sm">
+                <input type="text" id="chat-input" class="form-control shadow-none" placeholder="Nhập tin nhắn...">
+                <button id="btn-send-chat" class="btn btn-danger">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <th:block layout:fragment="script">
+    <script th:inline="javascript">
+        const currentUserEmail = [[${#authentication.name}]];
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
     <script th:src="@{/js/forum.js}"></script>
 </th:block>
 

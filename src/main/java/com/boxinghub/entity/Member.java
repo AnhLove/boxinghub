@@ -51,4 +51,10 @@ public class Member extends BaseEntity {
     // Thêm danh sách bình luận mà Member này đã viết
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL)
+    private List<ChatMessage> sentMessages = new ArrayList<>();
+
+    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL)
+    private List<ChatMessage> receivedMessages = new ArrayList<>();
 }
