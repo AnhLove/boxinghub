@@ -21,6 +21,9 @@ public class Member extends BaseEntity {
 
     private String phone;
 
+    @Column(name = "avatar_url")
+    private String avatarUrl;
+
     @Enumerated(EnumType.STRING)
     private Gender gender;
 

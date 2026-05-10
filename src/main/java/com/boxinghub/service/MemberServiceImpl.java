@@ -1,6 +1,5 @@
 package com.boxinghub.service;
 
-import com.boxinghub.entity.ClassStatus;
 import com.boxinghub.entity.GroupClass;
 import com.boxinghub.entity.Member;
 import com.boxinghub.entity.User;
@@ -11,7 +10,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +28,8 @@ public class MemberServiceImpl implements MemberService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final GroupClassRepository groupClassRepository;
+
+    private final String UPLOAD_DIR = "D:/project/boxinghub/boxinghub/src/main/resources/static/uploads/avatars/";
 
     @Override
     public List<Member> getAllMembers() {
@@ -90,7 +97,6 @@ public class MemberServiceImpl implements MemberService {
         return memberRepository.save(member);
     }
 
-    // --- LOGIC QUAN TRỌNG: ĐĂNG KÝ LỚP ---
     @Override
     @Transactional
     public void enrollInClass(Long memberId, Long classId) {
@@ -99,32 +105,26 @@ public class MemberServiceImpl implements MemberService {
         GroupClass groupClass = groupClassRepository.findById(classId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
 
-        // 1. KIỂM TRA SỐ BUỔI TẬP CÒN LẠI (Quan trọng để fix lỗi -1)
         if (member.getRemainingSessions() == null || member.getRemainingSessions() <= 0) {
             throw new RuntimeException("Bạn không còn buổi tập nào. Vui lòng liên hệ Admin để nạp thêm!");
         }
 
-        // 2. Kiểm tra đã đăng ký chưa
         if (member.getEnrolledClasses().contains(groupClass)) {
             throw new RuntimeException("Bạn đã đăng ký lớp này rồi!");
         }
 
-        // 3. Kiểm tra sĩ số lớp
         if (groupClass.getCurrentEnrolled() >= groupClass.getCapacity()) {
             throw new RuntimeException("Lớp học đã đầy chỗ!");
         }
 
-        // 4. Thực hiện nghiệp vụ khi đủ điều kiện
         member.getEnrolledClasses().add(groupClass);
-        member.setRemainingSessions(member.getRemainingSessions() - 1); // Trừ buổi tập an toàn
-
+        member.setRemainingSessions(member.getRemainingSessions() - 1);
         groupClass.setCurrentEnrolled(groupClass.getCurrentEnrolled() + 1);
 
         memberRepository.save(member);
         groupClassRepository.save(groupClass);
     }
 
-    // --- LOGIC QUAN TRỌNG: HỦY LỚP ---
     @Override
     @Transactional
     public void cancelEnrollment(Long memberId, Long classId) {
@@ -133,11 +133,8 @@ public class MemberServiceImpl implements MemberService {
         GroupClass groupClass = groupClassRepository.findById(classId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học"));
 
-        // Kiểm tra xem thực sự có trong lớp không trước khi hủy
         if (member.getEnrolledClasses().remove(groupClass)) {
-            // Hoàn lại 1 buổi tập
             member.setRemainingSessions(member.getRemainingSessions() + 1);
-            // Giảm sĩ số lớp
             groupClass.setCurrentEnrolled(Math.max(0, groupClass.getCurrentEnrolled() - 1));
 
             memberRepository.save(member);
@@ -147,7 +144,6 @@ public class MemberServiceImpl implements MemberService {
         }
     }
 
-    // --- LOGIC QUAN TRỌNG: NẠP BUỔI (ADMIN) ---
     @Override
     @Transactional
     public void addSessions(Long memberId, int amount) {
@@ -162,20 +158,44 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public void updateProfile(String email, Member data) {
-        // Lấy member hiện tại từ DB để giữ lại các thông tin như danh sách lớp, id, v.v.
+    public void updateProfile(String email, Member data, MultipartFile avatarFile) {
         Member member = memberRepository.findByUserEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy học viên"));
 
-        // Chỉ cập nhật các thông tin cá nhân cơ bản từ form
-        member.setFullName(data.getFullName());
+
+        if (avatarFile != null && !avatarFile.isEmpty()) {
+            try {
+
+                File uploadDir = new File(UPLOAD_DIR);
+                if (!uploadDir.exists()) {
+                    uploadDir.mkdirs();
+                }
+
+                String originalFileName = avatarFile.getOriginalFilename();
+                String extension = "";
+                if (originalFileName != null && originalFileName.contains(".")) {
+                    extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                }
+
+                String fileName = "avatar_" + member.getId() + "_" + System.currentTimeMillis() + extension;
+                Path filePath = Paths.get(UPLOAD_DIR + fileName);
+
+                Files.copy(avatarFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+                member.setAvatarUrl("/uploads/avatars/" + fileName);
+
+            } catch (Exception e) {
+                throw new RuntimeException("Lỗi hệ thống khi lưu ảnh: " + e.getMessage());
+            }
+        }
+
         member.setPhone(data.getPhone());
         member.setGender(data.getGender());
         member.setLevel(data.getLevel());
         member.setHeight(data.getHeight());
         member.setWeight(data.getWeight());
 
-        // Cập nhật tên hiển thị bên bảng User để layout đồng bộ
+
         if (member.getUser() != null) {
             member.getUser().setFullName(data.getFullName());
         }

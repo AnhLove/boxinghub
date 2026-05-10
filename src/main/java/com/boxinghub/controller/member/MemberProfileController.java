@@ -7,7 +7,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import jakarta.servlet.http.HttpSession;
 
 import java.security.Principal;
 
@@ -18,7 +20,6 @@ public class MemberProfileController {
 
     private final MemberService memberService;
 
-    // Hiển thị trang hồ sơ
     @GetMapping
     @Transactional(readOnly = true)
     public String showProfile(Principal principal, Model model) {
@@ -33,14 +34,14 @@ public class MemberProfileController {
         return "member/profile";
     }
 
-    // Xử lý cập nhật thông tin
     @PostMapping("/update")
     public String updateProfile(@ModelAttribute("member") Member memberData,
+                                @RequestParam(value = "avatarFile", required = false) MultipartFile avatarFile, // Thêm nhận file ở đây
                                 Principal principal,
                                 RedirectAttributes ra) {
         try {
-            memberService.updateProfile(principal.getName(), memberData);
-            ra.addFlashAttribute("success", "Cập nhật thông tin cá nhân thành công!");
+            memberService.updateProfile(principal.getName(), memberData, avatarFile);
+            ra.addFlashAttribute("success", "Cập nhật hồ sơ thành công!");
         } catch (Exception e) {
             ra.addFlashAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
         }

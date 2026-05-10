@@ -11,36 +11,45 @@
     <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${success}"></span>
   </div>
 
-  <div class="row">
-    <div class="col-lg-4">
-      <div class="card-box text-center p-4 mb-4">
-        <div class="mb-3">
-          <img th:src="@{/assets/images/users/user-default.png}" class="rounded-circle img-thumbnail" style="width: 120px;">
-        </div>
-        <h4 th:text="${member.fullName}">Nguyễn Văn A</h4>
-        <p class="text-muted" th:text="${member.user.email}">user@gmail.com</p>
-        <div class="badge bg-soft-danger text-danger p-2 px-3 mb-3">
-          Cấp độ: <span th:text="${member.level != null ? member.level : 'Newbie'}"></span>
-        </div>
-        <hr>
-        <div class="row text-center">
-          <div class="col-6 border-end">
-            <h5 th:text="${member.remainingSessions}">10</h5>
-            <small class="text-muted">Buổi còn lại</small>
+  <form th:action="@{/member/profile/update}" method="post" th:object="${member}" enctype="multipart/form-data">
+    <div class="row">
+      <div class="col-lg-4">
+        <div class="card-box text-center p-4 mb-4">
+          <div class="mb-3 position-relative d-inline-block">
+            <img th:src="${member.avatarUrl != null ? member.avatarUrl : '/assets/images/users/user-default.png'}"
+                 id="avatarPreview"
+                 class="rounded-circle img-thumbnail"
+                 style="width: 150px; height: 150px; object-fit: cover;">
+
+            <label for="avatarFile" class="btn btn-sm btn-dark position-absolute bottom-0 end-0 rounded-circle shadow">
+              <i class="bi bi-camera-fill"></i>
+            </label>
+            <input type="file" name="avatarFile" id="avatarFile" accept="image/*" style="display: none;" onchange="previewImage(this)">
           </div>
-          <div class="col-6">
-            <h5 th:text="${member.enrolledClasses.size()}">3</h5>
-            <small class="text-muted">Lớp đã tham gia</small>
+
+          <h4 th:text="${member.fullName}" class="mt-2">Nguyễn Văn A</h4>
+          <p class="text-muted" th:text="${member.user.email}">user@gmail.com</p>
+          <div class="badge bg-soft-danger text-danger p-2 px-3 mb-3">
+            Cấp độ: <span th:text="${member.level != null ? member.level : 'Newbie'}"></span>
+          </div>
+          <hr>
+          <div class="row text-center">
+            <div class="col-6 border-end">
+              <h5 th:text="${member.remainingSessions}">10</h5>
+              <small class="text-muted">Buổi còn lại</small>
+            </div>
+            <div class="col-6">
+              <h5 th:text="${member.enrolledClasses.size()}">3</h5>
+              <small class="text-muted">Lớp đã tham gia</small>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="col-lg-8">
-      <div class="card-box p-4">
-        <h4 class="header-title mb-4"><i class="bi bi-person-gear me-2 text-red"></i>Chỉnh sửa hồ sơ</h4>
+      <div class="col-lg-8">
+        <div class="card-box p-4">
+          <h4 class="header-title mb-4"><i class="bi bi-person-gear me-2 text-red"></i>Chỉnh sửa hồ sơ</h4>
 
-        <form th:action="@{/member/profile/update}" method="post" th:object="${member}">
           <div class="row">
             <div class="col-md-12 mb-3">
               <label class="form-label font-weight-bold">Họ và tên</label>
@@ -58,7 +67,7 @@
               </select>
             </div>
             <div class="col-md-6 mb-3">
-              <label class="form-label">Cấp độ</label>
+              <label class="form-label font-weight-bold">Cấp độ</label>
               <select class="form-select" th:field="*{level}">
                 <option value="">-- Chọn cấp độ --</option>
                 <option th:value="BEGINNER">Beginner</option>
@@ -89,10 +98,22 @@
               <i class="bi bi-save me-2"></i> Lưu thay đổi
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
-  </div>
+  </form>
+
+  <script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('avatarPreview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+  </script>
 </div>
 </body>
 </html>

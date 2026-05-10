@@ -12,15 +12,13 @@
             overflow: hidden;
         }
 
-        /* ÉP MÀU CHỮ NỘI DUNG BÀI VIẾT */
         .post-full-content {
             font-size: 1.1rem;
             line-height: 1.6;
             white-space: pre-wrap;
-            color: #212529 !important; /* Màu gần đen cho Light Mode */
+            color: #212529 !important;
         }
 
-        /* ĐỔI MÀU CHỮ TRONG DARK MODE CHO BÀI VIẾT */
         [data-theme='dark'] .post-full-content {
             color: #f8f9fa !important;
         }
@@ -31,25 +29,22 @@
             margin-bottom: 1.5rem;
         }
 
-        /* ÉP MÀU BÌNH LUẬN CỰC MẠNH */
         .comment-body {
             font-size: 1rem;
             line-height: 1.5;
             font-weight: 500;
-            /* Ép màu đen xám để đọc được trên nền trắng */
             color: #343a40 !important;
         }
 
-        /* KHI Ở CHẾ ĐỘ TỐI THÌ MỚI CHUYỂN CHỮ TRẮNG */
         [data-theme='dark'] .comment-body {
             color: #e9ecef !important;
         }
 
-        /* Giữ avatar không bị chìm */
         .author-avatar {
-            background: #dee2e6 !important;
-            color: #dc3545 !important;
-            font-weight: bold;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border);
+            background: var(--bg-3);
         }
     </style>
 </head>
@@ -66,8 +61,9 @@
         <div class="col-lg-9">
             <article class="detail-card p-4 p-md-5 shadow">
                 <div class="d-flex align-items-center mb-4">
-                    <div class="author-avatar me-3" style="width: 55px; height: 55px; font-size: 1.2rem; background: var(--bg-3); border: 1px solid var(--danger);"
-                         th:text="${#strings.substring(post.author.fullName, 0, 1)}"></div>
+                    <img th:src="${post.author.avatarUrl != null ? post.author.avatarUrl : '/assets/images/users/user-default.png'}"
+                         class="author-avatar me-3"
+                         style="width: 55px; height: 55px;" alt="Author Avatar">
                     <div>
                         <h5 class="fw-bold text-danger mb-0" th:text="${post.author.fullName}"></h5>
                         <small class="text-muted" th:text="${#temporals.format(post.createdAt, 'dd/MM/yyyy HH:mm')}"></small>
@@ -77,9 +73,9 @@
                 <h1 class="fw-bold mb-3" th:text="${post.title}" style="color: var(--text);"></h1>
                 <div class="post-full-content mb-4" th:text="${post.content}"></div>
 
-                <div th:if="${post.mediaUrl != null}" class="large-media-container">
-                    <img th:if="${post.mediaType == 'IMAGE'}" th:src="${post.mediaUrl}" alt="Post detail image">
-                    <video th:if="${post.mediaType == 'VIDEO'}" controls class="w-100">
+                <div th:if="${post.mediaUrl != null}" class="large-media-container mb-4">
+                    <img th:if="${post.mediaType == 'IMAGE'}" th:src="${post.mediaUrl}" alt="Post detail image" class="img-fluid rounded shadow-sm">
+                    <video th:if="${post.mediaType == 'VIDEO'}" controls class="w-100 rounded shadow-sm">
                         <source th:src="${post.mediaUrl}" type="video/mp4">
                     </video>
                 </div>
@@ -94,21 +90,32 @@
 
                     <div class="mb-5">
                         <form class="ajax-comment-form" th:data-post-id="${post.id}">
-            <textarea name="content" class="form-control mb-2 border-0 comment-input" rows="3"
-                      placeholder="Viết ý kiến của bạn..." required
-                      style="background: var(--bg-3) !important; color: var(--text); border-radius: 12px;"></textarea>
-                            <div class="text-end">
-                                <button type="submit" class="btn btn-danger px-4 rounded-pill">
-                                    <i class="bi bi-send me-1"></i> Gửi bình luận
-                                </button>
+                            <div class="d-flex gap-3">
+                                <img th:src="${currentMember.avatarUrl != null ? currentMember.avatarUrl : '/assets/images/users/user-default.png'}"
+                                     class="author-avatar d-none d-md-block"
+                                     style="width: 45px; height: 45px;"
+                                     alt="My Avatar"
+                                     onerror="this.src='/assets/images/users/user-default.png'">
+
+                                <div class="flex-grow-1">
+                <textarea name="content" class="form-control mb-2 border-0 comment-input" rows="3"
+                          placeholder="Viết ý kiến của bạn..." required
+                          style="background: var(--bg-3) !important; color: var(--text); border-radius: 12px; resize: none;"></textarea>
+                                    <div class="text-end">
+                                        <button type="submit" class="btn btn-danger px-4 rounded-pill fw-bold">
+                                            <i class="bi bi-send me-1"></i> Gửi bình luận
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </form>
                     </div>
 
                     <div class="comment-list" th:id="'comment-list-' + ${post.id}">
                         <div th:each="c : ${post.comments}" class="comment-item d-flex gap-3">
-                            <div class="author-avatar small" style="width: 40px; height: 40px; background: var(--bg-3); flex-shrink: 0;"
-                                 th:text="${#strings.substring(c.author.fullName, 0, 1)}"></div>
+                            <img th:src="${c.author.avatarUrl != null ? c.author.avatarUrl : '/assets/images/users/user-default.png'}"
+                                 class="author-avatar"
+                                 style="width: 40px; height: 40px;" alt="Commenter Avatar">
                             <div class="flex-grow-1">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <span class="fw-bold text-danger" th:text="${c.author.fullName}"></span>
@@ -124,6 +131,7 @@
         </div>
     </div>
 </div>
+
 <th:block layout:fragment="script">
     <script th:src="@{/js/forum.js}"></script>
 </th:block>

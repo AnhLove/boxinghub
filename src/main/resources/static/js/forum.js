@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // --- 1. XỬ LÝ HIỂN THỊ TÊN FILE KHI CHỌN ---
+    // --- 1. XỬ LÝ HIỂN THỊ TÊN FILE ---
     const fileInput = document.getElementById('fileInput');
     const fileNameDisplay = document.getElementById('fileNameDisplay');
 
@@ -8,8 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.files && this.files[0]) {
                 const file = this.files[0];
                 fileNameDisplay.textContent = file.name;
-
-                // Giới hạn 50MB
                 if (file.size > 50 * 1024 * 1024) {
                     alert("File quá lớn! Vui lòng chọn file dưới 50MB.");
                     this.value = "";
@@ -19,28 +17,31 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- 2. XỬ LÝ COMMENT AJAX (KHÔNG RELOAD TRANG) ---
+    // --- 2. XỬ LÝ COMMENT AJAX ---
     const commentForms = document.querySelectorAll('.ajax-comment-form');
+
+    const myAvatarUrl = document.querySelector('.post-card img.author-avatar')?.src
+                     || document.querySelector('.author-avatar')?.src
+                     || '/assets/images/users/user-default.png';
 
     commentForms.forEach(form => {
         form.addEventListener('submit', function(e) {
-            e.preventDefault(); // Chặn reload trang
+            e.preventDefault();
 
             const postId = this.getAttribute('data-post-id');
             const input = this.querySelector('.comment-input');
             const content = input.value.trim();
             const commentList = document.getElementById(`comment-list-${postId}`);
             const commentCountSpan = document.getElementById(`comment-count-${postId}`);
+            const submitBtn = this.querySelector('button[type="submit"]');
 
             if (!content) return;
 
-            // Lấy CSRF Token
+            if(submitBtn) submitBtn.disabled = true;
+
             const token = document.querySelector("meta[name='_csrf']")?.content;
             const header = document.querySelector("meta[name='_csrf_header']")?.content;
-
-            const headers = {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            };
+            const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
             if (token && header) headers[header] = token;
 
             fetch(`/member/forum/comment/${postId}`, {
@@ -50,23 +51,25 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => {
                 if (response.ok) {
-                    // Tạo HTML cho comment mới
                     const newComment = document.createElement('div');
                     newComment.className = 'd-flex gap-2 mb-2 align-items-start animate__animated animate__fadeIn';
+
                     newComment.innerHTML = `
-                        <div class="author-avatar" style="width: 32px; height: 32px; font-size: 0.75rem; flex-shrink: 0; background: var(--bg-3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--danger); border: 2px solid var(--border);">
-                            B
-                        </div>
-                        <div class="comment-bubble flex-grow-1 shadow-sm">
+                        <img src="${myAvatarUrl}"
+                             style="width: 32px; height: 32px; object-fit: cover; border-radius: 50%; flex-shrink: 0; border: 1px solid var(--border);"
+                             onerror="this.src='/assets/images/users/user-default.png'">
+                        <div class="comment-bubble flex-grow-1 shadow-sm" style="background: var(--bg-3); border-radius: 15px; padding: 8px 12px;">
                             <div class="fw-bold small text-danger">Bạn vừa xong</div>
                             <div class="comment-text" style="color: var(--text) !important; font-size: 0.875rem;">${content}</div>
                         </div>
                     `;
 
-                    // Chèn lên đầu danh sách comment của bài viết đó
-                    commentList.prepend(newComment);
+                    if (commentList) {
+                        commentList.prepend(newComment);
+                    } else {
 
-                    // Xóa nội dung input và tăng số đếm comment
+                    }
+
                     input.value = '';
                     if (commentCountSpan) {
                         commentCountSpan.innerText = parseInt(commentCountSpan.innerText) + 1;
@@ -75,24 +78,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('Không thể gửi bình luận. Vui lòng thử lại.');
                 }
             })
-            .catch(error => console.error('Lỗi comment:', error));
+            .catch(error => console.error('Lỗi comment:', error))
+            .finally(() => {
+                if(submitBtn) submitBtn.disabled = false;
+            });
         });
     });
 });
 
-// --- 3. XỬ LÝ LIKE (ĐỂ NGOÀI VÌ GỌI QUA TH:ONCLICK) ---
+// --- 3. XỬ LÝ LIKE ---
 let isProcessingLike = false;
-
 function handleLike(postId) {
     if (isProcessingLike) return;
-
     const token = document.querySelector("meta[name='_csrf']")?.getAttribute("content");
     const header = document.querySelector("meta[name='_csrf_header']")?.getAttribute("content");
-
-    const headers = {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-    };
+    const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
     if (token && header) headers[header] = token;
 
     const countSpan = document.getElementById(`like-count-${postId}`);
@@ -100,18 +100,12 @@ function handleLike(postId) {
     const btn = icon?.closest('button');
 
     if (!countSpan || !icon) return;
-
     isProcessingLike = true;
-    if (btn) btn.style.opacity = '0.5';
 
-    fetch(`/member/forum/like/${postId}`, {
-        method: 'POST',
-        headers: headers
-    })
+    fetch(`/member/forum/like/${postId}`, { method: 'POST', headers: headers })
     .then(response => {
         if (response.ok) {
             let currentLikes = parseInt(countSpan.innerText);
-
             if (icon.classList.contains('bi-heart')) {
                 icon.classList.replace('bi-heart', 'bi-heart-fill');
                 icon.classList.add('text-danger');
@@ -123,9 +117,5 @@ function handleLike(postId) {
             }
         }
     })
-    .catch(err => console.error("Lỗi Like:", err))
-    .finally(() => {
-        isProcessingLike = false;
-        if (btn) btn.style.opacity = '1';
-    });
+    .finally(() => { isProcessingLike = false; });
 }
