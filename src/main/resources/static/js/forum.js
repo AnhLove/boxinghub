@@ -113,6 +113,13 @@ function initWebSocket() {
             if (currentReceiverEmail === msg.senderEmail) {
                 renderChatMessage(msg, 'received');
                 markMessageAsRead(msg.senderEmail);
+            } else {
+                showChatNotification(msg.senderFullName);
+
+                        // Cập nhật badge trên header
+                        if (typeof updateNavChatInfo === 'function') {
+                            updateNavChatInfo();
+                        }
             }
 
             // TRƯỜNG HỢP 2: Bất kể có đang mở chat hay không,
@@ -192,8 +199,19 @@ function closeMiniChat() {
 }
 
 function showChatNotification(name) {
-    // Tùy chọn: Hiển thị toast hoặc rung chuông
     console.log("Tin nhắn mới từ: " + name);
+
+    const notificationSound = new Audio('/sounds/ting.mp3');
+    // 1. Reset nhạc về giây thứ 0
+    notificationSound.currentTime = 0;
+
+    // 2. Thiết lập âm lượng
+    notificationSound.volume = 0.6;
+
+    // 3. Phát nhạc
+    notificationSound.play().catch(error => {
+        console.warn("Âm báo chờ tương tác người dùng để kích hoạt lần đầu.");
+    });
 }
 // --- 7. XỬ LÝ LIKE  ---
 let isProcessingLike = false;
