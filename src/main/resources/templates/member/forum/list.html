@@ -111,7 +111,7 @@
 
                 <div th:if="${p.mediaUrl != null}" class="media-container mb-3 shadow-sm">
                     <img th:if="${p.mediaType == 'IMAGE'}" th:src="${p.mediaUrl}" alt="Post image" loading="lazy">
-                    <video th:if="${p.mediaType == 'VIDEO'}" controls preload="metadata">
+                    <video th:if="${p.mediaType == 'VIDEO'}" controls preload="auto">
                         <source th:src="${p.mediaUrl}" type="video/mp4">
                     </video>
                 </div>

@@ -2,6 +2,8 @@
 let stompClient = null;
 let currentReceiverEmail = null;
 
+const notificationSound = new Audio('/sounds/ting.mp3');
+
 function openMiniChat(email, name, avatar) {
     if (email === currentUserEmail) return;
 
@@ -109,27 +111,18 @@ function initWebSocket() {
         stompClient.subscribe('/user/queue/messages', function (message) {
             const msg = JSON.parse(message.body);
 
-            // TRƯỜNG HỢP 1: Đang mở đúng khung chat với người gửi
-            if (currentReceiverEmail === msg.senderEmail) {
-                renderChatMessage(msg, 'received');
-                markMessageAsRead(msg.senderEmail);
-            } else {
-                showChatNotification(msg.senderFullName);
-
-                        // Cập nhật badge trên header
-                        if (typeof updateNavChatInfo === 'function') {
-                            updateNavChatInfo();
-                        }
-            }
-
-            // TRƯỜNG HỢP 2: Bất kể có đang mở chat hay không,
-            // ta luôn cập nhật lại số Badge và danh sách tin nhắn trên Header
+            // Luôn cập nhật badge trên header bất kể đang ở đâu
             if (typeof updateNavChatInfo === 'function') {
                 updateNavChatInfo();
             }
 
-            // Hiển thị thông báo trình duyệt/console nếu không đang chat với người đó
-            if (currentReceiverEmail !== msg.senderEmail) {
+            if (currentReceiverEmail === msg.senderEmail) {
+                // TRƯỜNG HỢP 1: Đang mở đúng khung chat với người gửi
+                renderChatMessage(msg, 'received');
+                markMessageAsRead(msg.senderEmail);
+            } else {
+                // TRƯỜNG HỢP 2: Đang đóng chat hoặc chat với người khác
+                // Chỉ phát âm thanh ở đây để tránh kêu khi đang nhìn vào màn hình chat
                 showChatNotification(msg.senderFullName);
             }
         });
@@ -201,7 +194,6 @@ function closeMiniChat() {
 function showChatNotification(name) {
     console.log("Tin nhắn mới từ: " + name);
 
-    const notificationSound = new Audio('/sounds/ting.mp3');
     // 1. Reset nhạc về giây thứ 0
     notificationSound.currentTime = 0;
 
@@ -243,4 +235,100 @@ function handleLike(postId) {
         }
     })
     .finally(() => { isProcessingLike = false; });
+}
+// --- XỬ LÝ VIDEO VOLUME ---
+// Dùng WeakSet để tránh gắn listener trùng lặp
+const boostedVideos = new WeakSet();
+
+function boostVideoVolume() {
+    document.querySelectorAll('video').forEach(v => {
+        if (boostedVideos.has(v)) return; // Đã xử lý rồi, bỏ qua
+        boostedVideos.add(v);
+
+        // Chỉ set volume 1 lần khi metadata load xong
+        v.addEventListener('loadedmetadata', () => {
+            v.volume = 1.0;
+        });
+    });
+}
+
+boostVideoVolume();
+
+// Observer chỉ theo dõi video mới thêm vào
+const videoObserver = new MutationObserver(() => boostVideoVolume());
+videoObserver.observe(document.body, { childList: true, subtree: true });
+
+// Khi user nhấn play, đảm bảo volume = 1 (chỉ lần đầu)
+document.addEventListener('play', function(e) {
+    if (e.target.tagName === 'VIDEO' && e.target.volume < 0.1) {
+        e.target.volume = 2.0;
+    }
+}, true);
+
+// --- 7. XỬ LÝ COMMENT AJAX ---
+function handleCommentSubmit(form) {
+    const postId = form.getAttribute('data-post-id');
+    const input = form.querySelector('.comment-input');
+    const content = input.value.trim();
+    if (!content) return;
+
+    const token = document.querySelector("meta[name='_csrf']")?.content;
+    const header = document.querySelector("meta[name='_csrf_header']")?.content;
+
+    const formData = new URLSearchParams();
+    formData.append('content', content);
+
+    const headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    };
+    // Chỉ thêm CSRF nếu tồn tại
+    if (token && header) {
+        headers[header] = token;
+    }
+
+    fetch(`/member/forum/comment/${postId}`, {
+        method: 'POST',
+        headers: headers,
+        body: formData
+    })
+    .then(res => {
+        if (!res.ok) {
+            return res.text().then(t => { throw new Error(t); });
+        }
+        return res.json();
+    })
+    .then(data => {
+        console.log("Comment response:", data); // DEBUG - xem field thực tế
+
+        const list = document.getElementById(`comment-list-${postId}`);
+        const newComment = document.createElement('div');
+        newComment.className = 'd-flex gap-2 mb-2 align-items-start new-comment-anim';
+
+        // Thử nhiều tên field khác nhau (tùy Controller Java trả về gì)
+        const avatar = data.authorAvatar || data.avatar || data.authorAvatarUrl
+                     || data.avatarUrl || '/assets/images/users/user-default.png';
+        const name   = data.authorName  || data.fullName || data.name || 'Ẩn danh';
+        const text   = data.content     || data.text     || '';
+
+        newComment.innerHTML = `
+            <img src="${avatar}"
+                 style="width: 32px; height: 32px; object-fit: cover; border-radius: 50%;
+                        flex-shrink: 0; border: 1px solid var(--border);"
+                 onerror="this.src='/assets/images/users/user-default.png'">
+            <div class="comment-bubble flex-grow-1 shadow-sm">
+                <div class="fw-bold small text-danger">${name}</div>
+                <div class="comment-text">${text}</div>
+            </div>`;
+
+        list.insertAdjacentElement('afterbegin', newComment);
+
+        const countSpan = document.getElementById(`comment-count-${postId}`);
+        if (countSpan) countSpan.innerText = parseInt(countSpan.innerText) + 1;
+
+        input.value = '';
+    })
+    .catch(err => {
+        console.error("Comment error:", err);
+        alert("Không thể gửi bình luận. Vui lòng thử lại!");
+    });
 }

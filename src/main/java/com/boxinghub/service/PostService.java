@@ -1,5 +1,6 @@
 package com.boxinghub.service;
 
+import com.boxinghub.entity.Comment;
 import com.boxinghub.entity.Post;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -16,5 +17,5 @@ public interface PostService {
 
     void toggleLike(Long postId, String userEmail);
 
-    void addComment(Long postId, String content, String userEmail);
+    Comment addComment(Long postId, String content, String userEmail);
 }

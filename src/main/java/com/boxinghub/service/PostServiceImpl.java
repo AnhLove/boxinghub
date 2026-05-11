@@ -129,22 +129,19 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public void addComment(Long postId, String content, String userEmail) {
-        // 1. Tìm bài viết
+    public Comment addComment(Long postId, String content, String userEmail) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết"));
 
-        // 2. Tìm Member thông qua Email của User đang đăng nhập
         Member member = memberRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin thành viên"));
 
-        // 3. Tạo và lưu bình luận
         Comment comment = new Comment();
         comment.setContent(content);
         comment.setPost(post);
         comment.setAuthor(member);
 
-        commentRepository.save(comment);
+        return commentRepository.save(comment);
     }
 
     @Override

@@ -12,6 +12,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/member/forum")
@@ -79,8 +81,14 @@ public class ForumController {
                                         @RequestParam("content") String content,
                                         @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            postService.addComment(postId, content, userDetails.getUsername());
-            return ResponseEntity.ok().build();
+            var comment = postService.addComment(postId, content, userDetails.getUsername());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("content", comment.getContent());
+            response.put("authorName", comment.getAuthor().getFullName());
+            response.put("authorAvatar", comment.getAuthor().getAvatarUrl());
+
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
