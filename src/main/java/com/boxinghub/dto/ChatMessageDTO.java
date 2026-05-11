@@ -14,4 +14,5 @@ public class ChatMessageDTO {
     private String senderAvatar;      // Hiển thị ảnh đại diện người gửi
     private String receiverEmail;     // Email người nhận để server điều hướng tin nhắn
     private LocalDateTime timestamp;  // Thời gian gửi tin nhắn
+    private boolean isRead;
 }

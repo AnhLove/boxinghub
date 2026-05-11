@@ -142,6 +142,22 @@
     </div>
 
     <div class="d-flex gap-3 align-items-center">
+        <div class="dropdown me-2">
+            <button class="toggle-btn position-relative" type="button" id="chatDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-chat-left-dots"></i>
+                <span id="unread-chat-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size: 0.6rem;">
+            0
+        </span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="chatDropdown" id="chat-contact-list" style="width: 280px; max-height: 400px; overflow-y: auto; background: var(--bg-2);">
+                <li class="dropdown-header border-bottom mb-1" style="color: var(--text);">Tin nhắn gần đây</li>
+                <div id="contact-items-placeholder">
+                    <li class="text-center p-3 small text-muted">Không có tin nhắn mới</li>
+                </div>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-center small text-danger fw-bold" th:href="@{/member/forum}">Xem tất cả tại Diễn đàn</a></li>
+            </ul>
+        </div>
         <!-- Nút đổi theme -->
         <button class="toggle-btn" id="themeBtn">
             <i class="bi bi-moon-stars" id="themeIcon"></i>
@@ -174,6 +190,8 @@
 
 <!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:src="@{/js/header-chat.js}"></script>
 <script th:src="@{/js/app.js}"></script>
 
 <th:block layout:fragment="script"></th:block>

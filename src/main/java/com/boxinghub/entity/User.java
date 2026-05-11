@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class User extends BaseEntity {
     @Column(nullable = false)
-    private String fullName; // Để hiển thị "Xin chào, Nguyễn Văn A" trên Topbar
+    private String fullName;
 
     @Column(unique = true, nullable = false)
     private String email;
