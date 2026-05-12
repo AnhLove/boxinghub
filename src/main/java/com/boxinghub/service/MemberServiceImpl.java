@@ -189,6 +189,7 @@ public class MemberServiceImpl implements MemberService {
             }
         }
 
+        member.setFullName(data.getFullName());
         member.setPhone(data.getPhone());
         member.setGender(data.getGender());
         member.setLevel(data.getLevel());
