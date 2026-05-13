@@ -120,7 +120,12 @@
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <span class="fw-bold text-danger" th:text="${c.author.fullName}"></span>
                                     <small class="text-muted" style="font-size: 0.75rem;"
-                                           th:text="${#temporals.format(c.createdAt, 'HH:mm dd/MM/yyyy')}"></small>
+                                           th:text="${#temporals.format(c.createdAt, 'HH:mm dd/MM/yyyy')}">
+                                    </small>
+                                    <button class="btn btn-link btn-sm p-0 text-muted"
+                                            th:onclick="'openReportModal(\'COMMENT\', ' + ${c.id} + ')'">
+                                        <i class="bi bi-flag" style="font-size: 0.75rem;"></i>
+                                    </button>
                                 </div>
                                 <div class="comment-body" th:text="${c.content}"></div>
                             </div>
@@ -130,10 +135,58 @@
             </article>
         </div>
     </div>
+    <!-- Modal Báo cáo -->
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background: var(--bg-2); border: 1px solid var(--border);">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold" style="color: var(--text);">
+                        <i class="bi bi-flag-fill text-danger me-2"></i>Báo cáo nội dung
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">Chọn lý do báo cáo:</p>
+                    <div class="d-flex flex-column gap-2">
+                        <label class="d-flex align-items-center gap-2 p-2 rounded"
+                               style="cursor:pointer; border: 1px solid var(--border);">
+                            <input type="radio" name="reportReason" value="Spam hoặc quảng cáo"> Spam hoặc quảng cáo
+                        </label>
+                        <label class="d-flex align-items-center gap-2 p-2 rounded"
+                               style="cursor:pointer; border: 1px solid var(--border);">
+                            <input type="radio" name="reportReason" value="Ngôn ngữ thù địch"> Ngôn ngữ thù địch / xúc phạm
+                        </label>
+                        <label class="d-flex align-items-center gap-2 p-2 rounded"
+                               style="cursor:pointer; border: 1px solid var(--border);">
+                            <input type="radio" name="reportReason" value="Nội dung không phù hợp"> Nội dung không phù hợp
+                        </label>
+                        <label class="d-flex align-items-center gap-2 p-2 rounded"
+                               style="cursor:pointer; border: 1px solid var(--border);">
+                            <input type="radio" name="reportReason" value="Thông tin sai lệch"> Thông tin sai lệch
+                        </label>
+                        <label class="d-flex align-items-center gap-2 p-2 rounded"
+                               style="cursor:pointer; border: 1px solid var(--border);">
+                            <input type="radio" name="reportReason" value="Khác"> Lý do khác
+                        </label>
+                    </div>
+                    <textarea id="report-custom-reason" class="form-control mt-3 shadow-none" rows="2"
+                              placeholder="Mô tả thêm (tùy chọn)..."
+                              style="background: var(--bg-3); color: var(--text); border: 1px solid var(--border); resize: none;"></textarea>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger btn-sm px-4 fw-bold" onclick="submitReport()">
+                        <i class="bi bi-flag-fill me-1"></i>Gửi báo cáo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <th:block layout:fragment="script">
     <script th:src="@{/js/forum.js}"></script>
+    <script th:src="@{/js/reportmb.js}"></script>
 </th:block>
 </body>
 </html>
