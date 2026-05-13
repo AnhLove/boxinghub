@@ -18,4 +18,6 @@ public interface PostService {
     void toggleLike(Long postId, String userEmail);
 
     Comment addComment(Long postId, String content, String userEmail);
+
+    void reportContent(Long targetId, String type, String reason, String userEmail);
 }

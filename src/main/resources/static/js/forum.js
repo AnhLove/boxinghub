@@ -332,3 +332,66 @@ function handleCommentSubmit(form) {
         alert("Không thể gửi bình luận. Vui lòng thử lại!");
     });
 }
+
+// --- 8. XỬ LÝ BÁO CÁO ---
+let reportTargetId = null;
+let reportTargetType = null;
+
+function openReportModal(type, id) {
+    reportTargetId = id;
+    reportTargetType = type;
+
+    // Reset form mỗi lần mở
+    document.querySelectorAll('input[name="reportReason"]').forEach(r => r.checked = false);
+    document.getElementById('report-custom-reason').value = '';
+
+    new bootstrap.Modal(document.getElementById('reportModal')).show();
+}
+
+function submitReport() {
+    const selected = document.querySelector('input[name="reportReason"]:checked');
+    const custom = document.getElementById('report-custom-reason').value.trim();
+    const reason = selected ? selected.value : custom;
+
+    if (!reason) {
+        alert('Vui lòng chọn hoặc nhập lý do báo cáo!');
+        return;
+    }
+
+    const token = document.querySelector("meta[name='_csrf']")?.content;
+    const header = document.querySelector("meta[name='_csrf_header']")?.content;
+
+    const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    if (token && header) headers[header] = token;
+
+    fetch('/member/forum/report', {
+        method: 'POST',
+        headers: headers,
+        body: `targetId=${reportTargetId}&type=${reportTargetType}&reason=${encodeURIComponent(reason)}`
+    })
+    .then(res => {
+        if (res.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('reportModal')).hide();
+            showToast('✅ Đã gửi báo cáo. Cảm ơn bạn!', 'success');
+        } else {
+            showToast('❌ Có lỗi xảy ra, vui lòng thử lại!', 'danger');
+        }
+    })
+    .catch(() => showToast('❌ Có lỗi xảy ra, vui lòng thử lại!', 'danger'));
+}
+
+function showToast(message, type = 'success') {
+    // Xóa toast cũ nếu có
+    document.querySelectorAll('.forum-toast').forEach(t => t.remove());
+
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type} shadow forum-toast`;
+    toast.style.cssText = `
+        position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+        z-index: 9999; min-width: 280px; text-align: center;
+        animation: fadeIn 0.3s ease;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}

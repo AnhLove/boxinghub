@@ -110,4 +110,18 @@ public class ForumController {
         model.addAttribute("activePage", "forum");
         return "member/forum/detail";
     }
+
+    @PostMapping("/report")
+    @ResponseBody
+    public ResponseEntity<?> reportContent(@RequestParam Long targetId,
+                                           @RequestParam String type,
+                                           @RequestParam String reason,
+                                           @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            postService.reportContent(targetId, type, reason, userDetails.getUsername());
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
 }

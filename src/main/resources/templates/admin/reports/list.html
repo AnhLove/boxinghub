@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout/main}" lang="vi">
+<head>
+    <title>Báo cáo vi phạm</title>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <!-- Header -->
+    <div class="page-header mb-4">
+        <h1 class="page-title fw-bold">
+            <i class="bi bi-flag-fill text-danger me-2"></i>Báo cáo vi phạm
+        </h1>
+        <p class="page-subtitle text-muted">
+            Quản lý các nội dung bị báo cáo từ cộng đồng.
+            <span class="badge bg-danger ms-2" th:text="${pendingCount} + ' chờ xử lý'">0 chờ xử lý</span>
+        </p>
+    </div>
+
+    <!-- Flash message -->
+    <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <span th:text="${successMsg}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Table -->
+    <div class="card shadow-sm" style="background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead style="background: var(--bg-3);">
+                    <tr>
+                        <th class="px-3 py-3">#</th>
+                        <th>Loại</th>
+                        <th>Nội dung bị báo cáo</th>
+                        <th>Người báo cáo</th>
+                        <th>Lý do</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                        <th class="text-center">Hành động</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="r : ${reports}"
+                        th:style="${r.status.name() == 'PENDING'} ? 'border-left: 3px solid var(--danger)' : ''">
+
+                        <td class="px-3 text-muted small" th:text="${r.id}"></td>
+
+                        <!-- Loại -->
+                        <td>
+                            <span th:if="${r.post != null}" class="badge bg-primary">
+                                <i class="bi bi-file-text me-1"></i>Bài viết
+                            </span>
+                            <span th:if="${r.comment != null}" class="badge bg-secondary">
+                                <i class="bi bi-chat me-1"></i>Bình luận
+                            </span>
+                        </td>
+
+                        <!-- Nội dung bị báo cáo -->
+                        <td style="max-width: 250px;">
+                            <div th:if="${r.post != null}">
+                                <div class="fw-semibold small text-truncate"
+                                     th:text="${r.post.title}" style="color: var(--text);"></div>
+                                <div class="text-muted small text-truncate"
+                                     th:text="${r.post.content}"
+                                     style="max-width: 200px;"></div>
+                                <small class="text-danger"
+                                       th:text="'Tác giả: ' + ${r.post.author.fullName}"></small>
+                            </div>
+                            <div th:if="${r.comment != null}">
+                                <div class="text-muted small text-truncate"
+                                     th:text="${r.comment.content}"
+                                     style="max-width: 200px;"></div>
+                                <small class="text-danger"
+                                       th:text="'Tác giả: ' + ${r.comment.author.fullName}"></small>
+                            </div>
+                        </td>
+
+                        <!-- Người báo cáo -->
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <img th:src="${r.reporter.avatarUrl != null ? r.reporter.avatarUrl : '/assets/images/users/user-default.png'}"
+                                     style="width:30px; height:30px; border-radius:50%; object-fit:cover; border: 1px solid var(--border);"
+                                     onerror="this.src='/assets/images/users/user-default.png'">
+                                <span class="small" th:text="${r.reporter.fullName}"
+                                      style="color: var(--text);"></span>
+                            </div>
+                        </td>
+
+                        <!-- Lý do -->
+                        <td>
+                            <span class="badge bg-danger bg-opacity-75"
+                                  th:text="${r.reason}"></span>
+                        </td>
+
+                        <!-- Trạng thái -->
+                        <td>
+                            <span th:if="${r.status.name() == 'PENDING'}"
+                                  class="badge bg-warning text-dark">⏳ Chờ xử lý</span>
+                            <span th:if="${r.status.name() == 'RESOLVED'}"
+                                  class="badge bg-success">✅ Đã xử lý</span>
+                            <span th:if="${r.status.name() == 'DISMISSED'}"
+                                  class="badge bg-secondary">🚫 Bỏ qua</span>
+                        </td>
+
+                        <!-- Ngày tạo -->
+                        <td class="small text-muted"
+                            th:text="${#temporals.format(r.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+
+                        <!-- Hành động -->
+                        <td class="text-center">
+                            <div th:if="${r.status.name() == 'PENDING'}"
+                                 class="d-flex gap-1 justify-content-center">
+
+                                <!-- Nút xem & xử lý — mở preview modal -->
+                                <button type="button"
+                                        class="btn btn-outline-primary btn-sm btn-preview-report"
+                                        title="Xem chi tiết trước khi xử lý"
+                                        th:data-report-id="${r.id}"
+                                        th:data-type="${r.post != null ? 'POST' : 'COMMENT'}"
+                                        th:data-title="${r.post != null ? r.post.title : ''}"
+                                        th:data-content="${r.post != null ? r.post.content : (r.comment != null ? r.comment.content : '')}"
+                                        th:data-author="${r.post != null ? r.post.author.fullName : (r.comment != null ? r.comment.author.fullName : '')}"
+                                        th:data-avatar="${r.post != null ? (r.post.author.avatarUrl != null ? r.post.author.avatarUrl : '/assets/images/users/user-default.png') : (r.comment != null ? (r.comment.author.avatarUrl != null ? r.comment.author.avatarUrl : '/assets/images/users/user-default.png') : '/assets/images/users/user-default.png')}"
+                                        th:data-media-url="${r.post != null ? (r.post.mediaUrl != null ? r.post.mediaUrl : '') : ''}"
+                                        th:data-media-type="${r.post != null ? (r.post.mediaType != null ? r.post.mediaType : '') : ''}"
+                                        th:data-reason="${r.reason}"
+                                        th:data-reporter="${r.reporter.fullName}"
+                                        th:data-created-at="${#temporals.format(r.createdAt, 'dd/MM/yyyy HH:mm')}">
+                                    <i class="bi bi-eye-fill"></i> Xem
+                                </button>
+
+                                <!-- Bỏ qua nhanh -->
+                                <form th:action="@{/admin/reports/resolve/{id}(id=${r.id})}"
+                                      method="post">
+                                    <input type="hidden" name="action" value="DISMISS">
+                                    <button type="submit"
+                                            class="btn btn-outline-secondary btn-sm"
+                                            title="Bỏ qua báo cáo">
+                                        <i class="bi bi-x-circle"></i> Bỏ qua
+                                    </button>
+                                </form>
+                            </div>
+                            <span th:unless="${r.status.name() == 'PENDING'}"
+                                  class="text-muted small">—</span>
+                        </td>
+                    </tr>
+
+                    <!-- Empty state -->
+                    <tr th:if="${#lists.isEmpty(reports)}">
+                        <td colspan="8" class="text-center py-5">
+                            <i class="bi bi-shield-check fs-1 d-block mb-2 text-success"></i>
+                            <span class="text-muted">Không có báo cáo nào!</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- ===================== PREVIEW MODAL ===================== -->
+    <div class="modal fade" id="previewReportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" style="background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px;">
+
+                <!-- Header -->
+                <div class="modal-header border-bottom" style="border-color: var(--border) !important;">
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0" style="color: var(--text);">
+                            <i class="bi bi-eye-fill text-primary me-2"></i>Xem xét nội dung bị báo cáo
+                        </h5>
+                        <small class="text-muted">Đọc kỹ nội dung trước khi quyết định xử lý</small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body p-4">
+
+                    <!-- Report meta info -->
+                    <div class="d-flex gap-3 align-items-center p-3 rounded-3 mb-4"
+                         style="background: var(--bg-3); border: 1px solid var(--border);">
+                        <div class="text-center">
+                            <i class="bi bi-flag-fill text-danger fs-4"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="small text-muted mb-1">Lý do báo cáo</div>
+                            <span id="modal-reason" class="badge bg-danger bg-opacity-75 fs-6 px-3 py-1"></span>
+                        </div>
+                        <div class="text-end">
+                            <div class="small text-muted">Người báo cáo</div>
+                            <div id="modal-reporter" class="fw-semibold small" style="color: var(--text);"></div>
+                            <div id="modal-created-at" class="small text-muted"></div>
+                        </div>
+                    </div>
+
+                    <!-- Content preview card -->
+                    <div class="p-3 rounded-3" style="background: var(--bg-1); border: 2px solid var(--danger); border-radius: 12px !important;">
+
+                        <!-- Post preview -->
+                        <div id="preview-post-section">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <img id="modal-author-avatar"
+                                     style="width:42px; height:42px; border-radius:50%; object-fit:cover; border: 2px solid var(--border);"
+                                     onerror="this.src='/assets/images/users/user-default.png'">
+                                <div>
+                                    <div id="modal-author-name" class="fw-bold text-danger"></div>
+                                    <small class="text-muted">
+                                        <span id="modal-content-type-badge"></span>
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Post title (chỉ hiện với bài viết) -->
+                            <h5 id="modal-post-title" class="fw-bold mb-2" style="color: var(--text);"></h5>
+
+                            <!-- Content body -->
+                            <div id="modal-content-body"
+                                 style="color: var(--text); white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6; max-height: 250px; overflow-y: auto; padding: 12px; background: var(--bg-2); border-radius: 8px;">
+                            </div>
+
+                            <!-- Media preview nếu có -->
+                            <div id="modal-media-section" class="mt-3 d-none">
+                                <div style="background: #000; border-radius: 8px; overflow: hidden; max-height: 300px; display: flex; align-items: center; justify-content: center;">
+                                    <img id="modal-media-img" class="d-none"
+                                         style="max-width: 100%; max-height: 300px; object-fit: contain;">
+                                    <video id="modal-media-video" class="d-none" controls style="max-width: 100%; max-height: 300px;">
+                                        <source id="modal-media-video-src" src="" type="video/mp4">
+                                    </video>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Warning note -->
+                    <div class="alert alert-warning mt-3 mb-0 py-2 px-3" style="border-radius: 8px; font-size: 0.85rem;">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Lưu ý:</strong> Bấm <strong>Xóa nội dung</strong> sẽ xóa vĩnh viễn bài viết / bình luận này và không thể hoàn tác.
+                    </div>
+                </div>
+
+                <!-- Footer actions -->
+                <div class="modal-footer border-top d-flex gap-2 justify-content-between"
+                     style="border-color: var(--border) !important;">
+                    <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">
+                        <i class="bi bi-arrow-left me-1"></i>Đóng
+                    </button>
+                    <div class="d-flex gap-2">
+                        <!-- Bỏ qua từ modal -->
+                        <form id="modal-dismiss-form" method="post">
+                            <input type="hidden" name="action" value="DISMISS">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm px-3">
+                                <i class="bi bi-x-circle me-1"></i>Bỏ qua báo cáo
+                            </button>
+                        </form>
+                        <!-- Xóa nội dung vi phạm từ modal -->
+                        <form id="modal-delete-form" method="post">
+                            <input type="hidden" name="action" value="DELETE">
+                            <button type="submit" class="btn btn-danger btn-sm px-4 fw-bold">
+                                <i class="bi bi-trash3-fill me-1"></i>Xóa nội dung vi phạm
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ===================== END MODAL ===================== -->
+</div>
+
+
+
+<th:block layout:fragment="script">
+    <script>
+        // Dùng event delegation thay vì inline onclick
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('.btn-preview-report');
+            if (!btn) return;
+
+            var d = btn.dataset;
+            openPreviewModal(
+                d.reportId,
+                d.type,
+                d.title,
+                d.content,
+                d.author,
+                d.avatar,
+                d.mediaUrl,
+                d.mediaType,
+                d.reason,
+                d.reporter,
+                d.createdAt
+            );
+        });
+
+        function openPreviewModal(reportId, type, title, content, authorName, authorAvatar, mediaUrl, mediaType, reason, reporter, createdAt) {
+            document.getElementById('modal-delete-form').action = '/admin/reports/resolve/' + reportId;
+            document.getElementById('modal-dismiss-form').action = '/admin/reports/resolve/' + reportId;
+
+            document.getElementById('modal-reason').textContent = reason;
+            document.getElementById('modal-reporter').textContent = reporter;
+            document.getElementById('modal-created-at').textContent = createdAt;
+
+            document.getElementById('modal-author-avatar').src = authorAvatar || '/assets/images/users/user-default.png';
+            document.getElementById('modal-author-name').textContent = authorName;
+
+            var badgeEl = document.getElementById('modal-content-type-badge');
+            badgeEl.innerHTML = type === 'POST'
+                ? '<span class="badge bg-primary"><i class="bi bi-file-text me-1"></i>Bài viết</span>'
+                : '<span class="badge bg-secondary"><i class="bi bi-chat me-1"></i>Bình luận</span>';
+
+            var titleEl = document.getElementById('modal-post-title');
+            if (type === 'POST' && title) {
+                titleEl.textContent = title;
+                titleEl.classList.remove('d-none');
+            } else {
+                titleEl.textContent = '';
+                titleEl.classList.add('d-none');
+            }
+
+            document.getElementById('modal-content-body').textContent = content || '(Không có nội dung)';
+
+            var mediaSection = document.getElementById('modal-media-section');
+            var mediaImg = document.getElementById('modal-media-img');
+            var mediaVideo = document.getElementById('modal-media-video');
+            var mediaVideoSrc = document.getElementById('modal-media-video-src');
+
+            mediaImg.classList.add('d-none');
+            mediaVideo.classList.add('d-none');
+
+            if (mediaUrl && type === 'POST') {
+                mediaSection.classList.remove('d-none');
+                if (mediaType === 'IMAGE') {
+                    mediaImg.src = mediaUrl;
+                    mediaImg.classList.remove('d-none');
+                } else if (mediaType === 'VIDEO') {
+                    mediaVideoSrc.src = mediaUrl;
+                    mediaVideo.load();
+                    mediaVideo.classList.remove('d-none');
+                }
+            } else {
+                mediaSection.classList.add('d-none');
+            }
+
+            new bootstrap.Modal(document.getElementById('previewReportModal')).show();
+        }
+    </script>
+</th:block>
+
+</body>
+</html>

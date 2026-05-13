@@ -1,13 +1,7 @@
 package com.boxinghub.service;
 
-import com.boxinghub.entity.Comment;
-import com.boxinghub.entity.Member;
-import com.boxinghub.entity.Post;
-import com.boxinghub.entity.PostLike;
-import com.boxinghub.repository.CommentRepository;
-import com.boxinghub.repository.MemberRepository;
-import com.boxinghub.repository.PostLikeRepository;
-import com.boxinghub.repository.PostRepository;
+import com.boxinghub.entity.*;
+import com.boxinghub.repository.*;
 import com.boxinghub.utils.FileUploadUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,6 +29,9 @@ public class PostServiceImpl implements PostService {
 
     @Autowired
     private PostLikeRepository postLikeRepository;
+
+    @Autowired
+    private ReportRepository reportRepository;
 
     @Override
     public List<Post> getAllPosts(String currentUserEmail) {
@@ -148,5 +145,24 @@ public class PostServiceImpl implements PostService {
     public Post getPostById(Long id) {
         return postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết với ID: " + id));
+    }
+
+    @Override
+    @Transactional
+    public void reportContent(Long targetId, String type, String reason, String userEmail) {
+        Member reporter = memberRepository.findByUserEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Report report = new Report();
+        report.setReporter(reporter);
+        report.setReason(reason);
+
+        if ("POST".equals(type)) {
+            report.setPost(postRepository.findById(targetId).orElse(null));
+        } else {
+            report.setComment(commentRepository.findById(targetId).orElse(null));
+        }
+
+        reportRepository.save(report);
     }
 }
