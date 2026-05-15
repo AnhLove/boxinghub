@@ -7,12 +7,19 @@
 <body>
 <div layout:fragment="content" th:with="activePage='profile', pageTitle='Hồ sơ cá nhân'">
 
+  <!-- Thông báo cập nhật hồ sơ -->
   <div th:if="${success}" class="alert alert-success shadow-sm border-0 mb-4">
     <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${success}"></span>
   </div>
+  <div th:if="${error}" class="alert alert-danger shadow-sm border-0 mb-4">
+    <i class="bi bi-x-circle-fill me-2"></i> <span th:text="${error}"></span>
+  </div>
 
+  <!-- ===== FORM CẬP NHẬT HỒ SƠ ===== -->
   <form th:action="@{/member/profile/update}" method="post" th:object="${member}" enctype="multipart/form-data">
     <div class="row">
+
+      <!-- Cột trái: Avatar + thông tin tóm tắt -->
       <div class="col-lg-4">
         <div class="card-box text-center p-4 mb-4">
           <div class="mb-3 position-relative d-inline-block">
@@ -20,11 +27,11 @@
                  id="avatarPreview"
                  class="rounded-circle img-thumbnail"
                  style="width: 150px; height: 150px; object-fit: cover;">
-
             <label for="avatarFile" class="btn btn-sm btn-dark position-absolute bottom-0 end-0 rounded-circle shadow">
               <i class="bi bi-camera-fill"></i>
             </label>
-            <input type="file" name="avatarFile" id="avatarFile" accept="image/*" style="display: none;" onchange="previewImage(this)">
+            <input type="file" name="avatarFile" id="avatarFile" accept="image/*"
+                   style="display: none;" onchange="previewImage(this)">
           </div>
 
           <h4 th:text="${member.fullName}" class="mt-2">Nguyễn Văn A</h4>
@@ -46,9 +53,12 @@
         </div>
       </div>
 
+      <!-- Cột phải: Form chỉnh sửa -->
       <div class="col-lg-8">
         <div class="card-box p-4">
-          <h4 class="header-title mb-4"><i class="bi bi-person-gear me-2 text-red"></i>Chỉnh sửa hồ sơ</h4>
+          <h4 class="header-title mb-4">
+            <i class="bi bi-person-gear me-2 text-red"></i>Chỉnh sửa hồ sơ
+          </h4>
 
           <div class="row">
             <div class="col-md-12 mb-3">
@@ -76,7 +86,9 @@
               </select>
             </div>
 
-            <h5 class="mt-4 mb-3 text-red"><i class="bi bi-activity me-2"></i>Chỉ số cơ thể</h5>
+            <h5 class="mt-4 mb-3 text-red">
+              <i class="bi bi-activity me-2"></i>Chỉ số cơ thể
+            </h5>
             <div class="col-md-6 mb-3">
               <label class="form-label font-weight-bold">Chiều cao (cm)</label>
               <div class="input-group">
@@ -100,20 +112,91 @@
           </div>
         </div>
       </div>
+
     </div>
   </form>
 
-  <script>
-    function previewImage(input) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('avatarPreview').src = e.target.result;
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-  </script>
+  <!-- ===== SECTION ĐỔI MẬT KHẨU ===== -->
+  <div class="row mt-4">
+    <div class="col-lg-8 offset-lg-4">
+      <div class="card-box p-4">
+        <h4 class="header-title mb-1">
+          <i class="bi bi-shield-lock me-2 text-red"></i>Đổi mật khẩu
+        </h4>
+        <p class="text-muted small mb-4">Để bảo mật tài khoản, không chia sẻ mật khẩu cho người khác.</p>
+
+        <!-- Thông báo riêng cho đổi mật khẩu -->
+        <div th:if="${passwordSuccess}" class="alert alert-success border-0 shadow-sm">
+          <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${passwordSuccess}"></span>
+        </div>
+        <div th:if="${passwordError}" class="alert alert-danger border-0 shadow-sm">
+          <i class="bi bi-x-circle-fill me-2"></i> <span th:text="${passwordError}"></span>
+        </div>
+
+        <form th:action="@{/member/profile/change-password}" method="post" id="changePasswordForm">
+
+          <div class="mb-3 position-relative">
+            <label class="form-label fw-semibold">Mật khẩu hiện tại</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-lock"></i></span>
+              <input type="password" name="currentPassword" id="currentPassword"
+                     class="form-control" placeholder="Nhập mật khẩu hiện tại" required>
+              <button type="button" class="btn btn-outline-secondary"
+                      onclick="togglePw('currentPassword', this)" tabindex="-1">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Mật khẩu mới</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+              <input type="password" name="newPassword" id="newPassword"
+                     class="form-control" placeholder="Tối thiểu 6 ký tự" required minlength="6"
+                     oninput="updateStrength(this.value); checkPasswordMatch()">
+              <button type="button" class="btn btn-outline-secondary"
+                      onclick="togglePw('newPassword', this)" tabindex="-1">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+            <!-- Thanh độ mạnh mật khẩu -->
+            <div class="mt-2" id="strengthWrapper" style="display:none;">
+              <div class="progress" style="height: 5px;">
+                <div class="progress-bar" id="pwStrengthBar" role="progressbar" style="width:0;"></div>
+              </div>
+              <small id="pwStrengthLabel" class="text-muted"></small>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Xác nhận mật khẩu mới</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+              <input type="password" name="confirmPassword" id="confirmPassword"
+                     class="form-control" placeholder="Nhập lại mật khẩu mới" required
+                     oninput="checkPasswordMatch()">
+              <button type="button" class="btn btn-outline-secondary"
+                      onclick="togglePw('confirmPassword', this)" tabindex="-1">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+            <small id="matchFeedback" class="mt-1 d-block"></small>
+          </div>
+
+          <div class="text-end">
+            <button type="submit" class="btn btn-red px-5 py-2 shadow" id="changePwBtn">
+              <i class="bi bi-shield-check me-2"></i> Đổi mật khẩu
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- ===== /SECTION ĐỔI MẬT KHẨU ===== -->
+
+  <script th:src="@{/js/profile.js}"></script>
+
 </div>
 </body>
 </html>

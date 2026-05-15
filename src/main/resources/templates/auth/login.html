@@ -131,6 +131,23 @@
             text-align: left;
         }
 
+        .forgot-link {
+            display: block;
+            text-align: right;
+            margin-top: 12px;
+            margin-bottom: 0;
+            font-size: 0.85rem;
+        }
+
+        .forgot-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .forgot-link a:hover {
+            text-decoration: underline;
+        }
+
         /* Liên kết chuyển sang trang đăng ký */
         .register-link {
             margin-top: 20px;
@@ -195,6 +212,10 @@
 
         <button type="submit" class="btn-login">Đăng nhập ngay</button>
     </form>
+
+    <div class="forgot-link">
+        <a th:href="@{/forgot-password}">Quên mật khẩu?</a>
+    </div>
 
     <!-- 4. Link chuyển sang trang đăng ký -->
     <div class="register-link">

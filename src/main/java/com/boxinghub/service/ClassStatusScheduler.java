@@ -17,20 +17,6 @@ public class ClassStatusScheduler {
         this.groupClassRepository = groupClassRepository;
     }
 
-//    @Scheduled(cron = "0 * * * * *")
-//    public void autoCloseExpiredClasses() {
-//        List<GroupClass> allOpen = groupClassRepository.findByStatus(ClassStatus.OPEN);
-//        LocalDateTime now = LocalDateTime.now();
-//
-//        for (GroupClass gClass : allOpen) {
-//            int duration = (gClass.getDurationMinutes() != null) ? gClass.getDurationMinutes() : 120;
-//            if (gClass.getSchedule().plusMinutes(duration).isBefore(now)) {
-//                gClass.setStatus(ClassStatus.CLOSED);
-//                groupClassRepository.save(gClass);
-//            }
-//        }
-//    }
-
     @Scheduled(cron = "0 * * * * *")
     public void autoCloseExpiredClasses() {
         LocalDateTime now = LocalDateTime.now();

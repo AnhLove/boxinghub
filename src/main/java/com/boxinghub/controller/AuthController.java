@@ -1,15 +1,15 @@
 package com.boxinghub.controller;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.ui.Model;
 import com.boxinghub.entity.Member;
 import com.boxinghub.entity.User;
+import com.boxinghub.service.MemberService;
+import com.boxinghub.service.PasswordService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Set;
@@ -18,7 +18,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final com.boxinghub.service.MemberService memberService;
+    private final MemberService memberService;
+    private final PasswordService passwordService;
 
     @GetMapping("/login")
     public String loginPage() {
@@ -31,54 +32,100 @@ public class AuthController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return "redirect:/login";
         }
-
         Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
-
-        if (roles.contains("ROLE_ADMIN")) {
-            return "redirect:/admin/dashboard";
-        } else if (roles.contains("ROLE_MEMBER")) {
-            return "redirect:/member/dashboard";
-        } else if (roles.contains("ROLE_TRAINER")) {
-            return "redirect:/trainer/dashboard";
-        }
-
+        if (roles.contains("ROLE_ADMIN"))   return "redirect:/admin/dashboard";
+        if (roles.contains("ROLE_MEMBER"))  return "redirect:/member/dashboard";
+        if (roles.contains("ROLE_TRAINER")) return "redirect:/trainer/dashboard";
         return "redirect:/login";
     }
 
-    // 1. Hiển thị trang đăng ký
+    // ==================== ĐĂNG KÝ ====================
+
     @GetMapping("/register")
     public String registerPage(Model model) {
-        // Truyền đối tượng trống để Form bind dữ liệu
         model.addAttribute("member", new Member());
         model.addAttribute("user", new User());
         return "auth/register";
     }
 
-    // 2. Xử lý dữ liệu gửi lên từ Form đăng ký
     @PostMapping("/register")
     public String processRegister(@ModelAttribute("member") Member member, RedirectAttributes ra) {
         try {
             User user = member.getUser();
-
-            // 1. ĐỒNG BỘ DỮ LIỆU: Vì User cũng yêu cầu fullName không được null
             if (user != null) {
                 user.setFullName(member.getFullName());
             } else {
                 throw new RuntimeException("Dữ liệu tài khoản không hợp lệ!");
             }
-
-            // 2. Gán Role mặc định nếu Service chưa làm việc này
             user.setRole("ROLE_MEMBER");
-
-            // 3. Gọi service để mã hóa mật khẩu và lưu cả 2
             memberService.registerNewMember(member, user);
-
             ra.addFlashAttribute("success", "Đăng ký thành công! Mời bạn đăng nhập.");
             return "redirect:/login";
         } catch (Exception e) {
-            e.printStackTrace(); // In ra console để bạn debug nếu vẫn lỗi
+            e.printStackTrace();
             ra.addFlashAttribute("error", "Đăng ký thất bại: " + e.getMessage());
             return "redirect:/register";
+        }
+    }
+
+    // ==================== QUÊN MẬT KHẨU ====================
+
+    /** Hiển thị form nhập email */
+    @GetMapping("/forgot-password")
+    public String forgotPasswordPage() {
+        return "auth/forgot-password";
+    }
+
+    /** Xử lý gửi email reset */
+    @PostMapping("/forgot-password")
+    public String processForgotPassword(@RequestParam("email") String email,
+                                        RedirectAttributes ra) {
+        try {
+            passwordService.initiatePasswordReset(email);
+            ra.addFlashAttribute("success",
+                    "Chúng tôi đã gửi link đặt lại mật khẩu đến " + email + ". Vui lòng kiểm tra hộp thư.");
+        } catch (Exception e) {
+            // Không tiết lộ email có tồn tại hay không vì lý do bảo mật
+            ra.addFlashAttribute("success",
+                    "Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn trong vài phút.");
+        }
+        return "redirect:/forgot-password";
+    }
+
+    /** Hiển thị form đặt mật khẩu mới */
+    @GetMapping("/reset-password")
+    public String resetPasswordPage(@RequestParam("token") String token, Model model) {
+        if (!passwordService.validateResetToken(token)) {
+            model.addAttribute("error", "Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
+            return "auth/reset-password";
+        }
+        model.addAttribute("token", token);
+        return "auth/reset-password";
+    }
+
+    /** Xử lý đặt mật khẩu mới */
+    @PostMapping("/reset-password")
+    public String processResetPassword(@RequestParam("token") String token,
+                                       @RequestParam("newPassword") String newPassword,
+                                       @RequestParam("confirmPassword") String confirmPassword,
+                                       RedirectAttributes ra) {
+        if (!newPassword.equals(confirmPassword)) {
+            ra.addFlashAttribute("error", "Mật khẩu xác nhận không khớp!");
+            ra.addFlashAttribute("token", token);
+            return "redirect:/reset-password?token=" + token;
+        }
+        if (newPassword.length() < 6) {
+            ra.addFlashAttribute("error", "Mật khẩu phải có ít nhất 6 ký tự!");
+            ra.addFlashAttribute("token", token);
+            return "redirect:/reset-password?token=" + token;
+        }
+        try {
+            passwordService.resetPassword(token, newPassword);
+            ra.addFlashAttribute("success", "Đặt lại mật khẩu thành công! Mời bạn đăng nhập.");
+            return "redirect:/login";
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", e.getMessage());
+            return "redirect:/reset-password?token=" + token;
         }
     }
 }
