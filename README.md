@@ -47,23 +47,8 @@ mvnw.cmd spring-boot:run
 ```
 http://localhost:8080
 ```
-
----
-
-## Default Accounts
-
-| Role | Email | Password |
-|---|---|---|
-| Admin | admin@boxinghub.com | admin123 |
-| Member | member@boxinghub.com | member123 |
-
----
-
-## Tech Stack
-
-Spring Boot 3 · Spring Security · Spring Data JPA · MySQL · Thymeleaf
-
----
+-
+## Tech StackSpring Boot 3 · Spring Security · Spring Data JPA · MySQL · Thymeleaf
 ---
 
 # 🥊 BoxingHub — Hệ thống quản lý câu lạc bộ Boxing
@@ -97,7 +82,7 @@ Hoặc mở **MySQL Workbench** → Server → Data Import → chọn file `data
 **3. Cấu hình database**
 
 Mở `src/main/resources/application.properties`, sửa lại:
-```properties
+```applicationg.properties
 spring.datasource.username=root
 spring.datasource.password=YOUR_PASSWORD
 ```
@@ -109,21 +94,9 @@ mvnw.cmd spring-boot:run
 
 # macOS / Linux
 ./mvnw spring-boot:run
-```
 
 **5. Truy cập**
-```
 http://localhost:8080
-```
-
----
-
-## Tài khoản mặc định
-
-| Role | Email | Mật khẩu |
-|---|---|---|
-| Admin | admin@boxinghub.com | admin123 |
-| Member | member@boxinghub.com | member123 |
 
 ---
 
